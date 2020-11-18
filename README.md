@@ -90,25 +90,25 @@ The following API-calls are reproduced right now
 
 Operation | Resource Type | Status | Description
 --- | --- | --- | ---
-List Containers | Account | ✓ | `procedure ListContainers(var RequestObject: Codeunit "AZBSA Request Object"; [var BlobStorageContainer: Record "AZBSA Container"]; [ShowOutput: Boolean])`
+[List Containers](https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2) | Account | ✓ | `procedure ListContainers(var RequestObject: Codeunit "AZBSA Request Object"; [var BlobStorageContainer: Record "AZBSA Container"]; [ShowOutput: Boolean])`
 Set Blob Service Properties | Account |  | 
 Get Blob Service Properties | Account |  | 
 Preflight Blob Request | Account |  | 
 Get Blob Service Stats | Account |  | 
 Get Account Information | Account |  | 
 Get User Delegation Key | Account |  | 
-Create Container | Container | ✓ | `procedure CreateContainer(var RequestObject: Codeunit "AZBSA Request Object")`
+[Create Container](https://docs.microsoft.com/en-us/rest/api/storageservices/create-container) | Container | ✓ | `procedure CreateContainer(var RequestObject: Codeunit "AZBSA Request Object")`
 Get Container Properties | Container |  | 
 Get Container Metadata | Container |  | 
 Set Container Metadata | Container |  | 
 Get Container ACL | Container |  | 
 Set Container ACL | Container |  | 
 Lease Container | Container |  | 
-Delete Container | Container | ✓ | `procedure DeleteContainer(var RequestObject: Codeunit "AZBSA Request Object")`
-List Blobs | Container | ✓ | `procedure ListBlobs(var RequestObject: Codeunit "AZBSA Request Object"; [var BlobStorageContent: Record "AZBSA Container Content"]; [ShowOutput: Boolean])`
-Put Blob | Block, append, and page blobs | ✓ | `procedure UploadBlobIntoContainerStream(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text; var SourceStream: InStream)`
+[Delete Container](https://docs.microsoft.com/en-us/rest/api/storageservices/delete-container) | Container | ✓ | `procedure DeleteContainer(var RequestObject: Codeunit "AZBSA Request Object")`
+[List Blobs](https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs) | Container | ✓ | `procedure ListBlobs(var RequestObject: Codeunit "AZBSA Request Object"; [var BlobStorageContent: Record "AZBSA Container Content"]; [ShowOutput: Boolean])`
+[Put Blob](https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob) | Block, append, and page blobs | ✓ | `procedure UploadBlobIntoContainerStream(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text; var SourceStream: InStream)`
  | | | |  `procedure UploadBlobIntoContainerText(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text; var SourceText: Text)`
-Get Blob | Block, append, and page blobs | ✓ | `procedure DownloadBlobAsStream(var RequestObject: Codeunit "AZBSA Request Object"; var TargetStream: InStream)`
+[Get Blob](https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob) | Block, append, and page blobs | ✓ | `procedure DownloadBlobAsStream(var RequestObject: Codeunit "AZBSA Request Object"; var TargetStream: InStream)`
  | | | |  `procedure DownloadBlobAsText(var RequestObject: Codeunit "AZBSA Request Object"; var TargetText: Text)`
  | | | | Note: Only supports BlockBlob right now
 Get Blob Properties | Block, append, and page blobs |  | 
@@ -119,7 +119,7 @@ Set Blob Metadata | Block, append, and page blobs |  |
 Get Blob Tags | Block, append, and page blobs |  | 
 Set Blob Tags | Block, append, and page blobs |  | 
 Find Blobs By Tags | Block, append, and page blobs |  | 
-Delete Blob | Block, append and page blobs | ✓ | `procedure DeleteBlobFromContainerUI(var RequestObject: Codeunit "AZBSA Request Object")`
+[Delete Blob](https://docs.microsoft.com/en-us/rest/api/storageservices/delete-blob) | Block, append and page blobs | ✓ | `procedure DeleteBlobFromContainerUI(var RequestObject: Codeunit "AZBSA Request Object")`
 | | | |  `procedure DeleteBlobFromContainer(var RequestObject: Codeunit "AZBSA Request Object")`
 Undelete Blob | Block, append and page blobs |  | 
 Lease Blob | Block, append, and page blobs |  | 
