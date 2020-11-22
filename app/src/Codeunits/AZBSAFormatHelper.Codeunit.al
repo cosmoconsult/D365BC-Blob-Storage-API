@@ -12,6 +12,21 @@ codeunit 89003 "AZBSA Format Helper"
 
     end;
 
+    procedure AppendToUri(var Uri: Text; ParameterIdentifier: Text; ParameterValue: Text)
+    var
+        ConcatChar: Text;
+        AppendType1Lbl: Label '%1%2=%3', Comment = '%1 = Concatenation character, %2 = Parameter Identifer, %3 = Parameter Value';
+        AppendType2Lbl: Label '%1%2', Comment = '%1 = Concatenation character, %2 = Parameter Value';
+    begin
+        ConcatChar := '?';
+        if Uri.Contains('?') then
+            ConcatChar := '&';
+        if ParameterIdentifier <> '' then
+            Uri += StrSubstNo(AppendType1Lbl, ConcatChar, ParameterIdentifier, ParameterValue)
+        else
+            Uri += StrSubstNo(AppendType2Lbl, ConcatChar, ParameterValue)
+    end;
+
     procedure RemoveSasTokenParameterFromUrl(Url: Text): Text
     begin
         if Url.Contains('&sv') then
