@@ -6,9 +6,10 @@ This App reproduces the [Azure Blob Storage REST API](https://docs.microsoft.com
 
 1. [Description](#description)
 2. [Usage](#usage)
-3. [Authorization Methods](#authorization-methods)
-4. [API Coverage Status](#api-coverage-Status)
-5. [To-Do List](#to-do-list)
+3. [Samples](#samples)
+4. [Authorization Methods](#authorization-methods)
+5. [API Coverage Status](#api-coverage-Status)
+6. [To-Do List](#to-do-list)
 
 ## Description
 
@@ -62,10 +63,11 @@ All API-methods are publicly available in `codeunit 89000 "AZBSA Blob Storage AP
 
 You can also make use of "optional URI parameters" (e.g. "maxresults" for ["List Blobs"](https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs)). The "Request Object" contains some functions for predefined parameters (SetTimeoutParameter, SetVersionIdParameter, SetSnapshotParameter, SetPrefixParameter, SetDelimiterParameter, SetMaxResultsParameter), but you can also use a "generic" approach with the function "AddOptionalUriParameter(Key, Value)".
 
+## Samples
 
-### Sample Code
+Check out the procedures in `table 89000 "AZBSA Blob Storage Connection"` to see examples for the usage. Below you can find some more.
 
-Check out the procedures in `table 89000 "AZBSA Blob Storage Connection"` to see examples for the usage. Below you can find a simple example to create a Container in a Storage Account:
+### Create Container
 
 ```
 local procedure CreateContainer(ContainerName: Text)
@@ -75,11 +77,63 @@ var
     AuthType: Enum "AZBSA Authorization Type";
 begin
     RequestObject.InitializeAuthorization(AuthType::SharedKey, '02ruoBoh....jjwgooov49oMA==');
-    RequestObject.InitializeRequest('simonofhhtest001', 'testcontainer');
+    RequestObject.InitializeRequest('simonofhhtest001', ContainerName);
     API.CreateContainer(RequestObject);
 end;
 ```
 
+### List Blobs
+
+```
+local procedure ListBlobs(ContainerName: Text)
+var
+    API: Codeunit "AZBSA Blob Storage API";
+    RequestObject: Codeunit "AZBSA Request Object";
+    AuthType: Enum "AZBSA Authorization Type";
+begin
+    RequestObject.InitializeAuthorization(AuthType::SharedKey, '02ruoBoh....jjwgooov49oMA==');
+    RequestObject.InitializeRequest('simonofhhtest001', ContainerName);
+    API.ListBlobs(RequestObject);
+end;
+```
+
+### List Blobs (limit max. results)
+
+```
+local procedure ListBlobs(ContainerName: Text)
+var
+    API: Codeunit "AZBSA Blob Storage API";
+    RequestObject: Codeunit "AZBSA Request Object";
+    AuthType: Enum "AZBSA Authorization Type";
+begin
+    RequestObject.InitializeAuthorization(AuthType::SharedKey, '02ruoBoh....jjwgooov49oMA==');
+    RequestObject.InitializeRequest('simonofhhtest001', ContainerName);
+    // Option 1
+    RequestObject.SetMaxResultsParameter(5); // Limits result to a maximum of 5 blobs
+    // Option 2
+    // RequestObject.AddOptionalUriParameter('maxresults', '5'); // Limits result to a maximum of 5 blobs
+    API.ListBlobs(RequestObject);
+end;
+```
+
+### List Blobs (with Timeout)
+
+```
+local procedure ListBlobs(ContainerName: Text)
+var
+    API: Codeunit "AZBSA Blob Storage API";
+    RequestObject: Codeunit "AZBSA Request Object";
+    AuthType: Enum "AZBSA Authorization Type";
+begin
+    RequestObject.InitializeAuthorization(AuthType::SharedKey, '02ruoBoh....jjwgooov49oMA==');
+    RequestObject.InitializeRequest('simonofhhtest001', ContainerName);
+    // Option 1
+    RequestObject.SetTimeoutParameter(2); // Sets timeout to 2 seconds
+    // Option 2
+    // RequestObject.AddOptionalUriParameter('timeout', '2'); // // Sets timeout to 2 seconds
+    API.ListBlobs(RequestObject);
+end;
+```
 
 ## Authorization Methods
 
@@ -156,3 +210,4 @@ These topics are currently on the to-do list:
 - Add handling for optional Request Headers
 - Extend handling for optional URI parameters
 - Reproduce further API functions
+- Create better documentation
