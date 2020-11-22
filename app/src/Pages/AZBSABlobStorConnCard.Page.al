@@ -72,6 +72,17 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
     {
         area(Navigation)
         {
+            action(OpenTester)
+            {
+                Caption = 'Open Test-Page';
+                Image = TestFile;
+                ApplicationArea = All;
+                ToolTip = 'Use this page to test API actions and view the "raw" HTTP response for it';
+                RunObject = page "AZBSA Request Test";
+                Promoted = true;
+                PromotedIsBig = true;
+                PromotedCategory = Process;
+            }
             group(View)
             {
                 Caption = 'View Container';
