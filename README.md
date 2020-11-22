@@ -8,6 +8,7 @@ This App reproduces the [Azure Blob Storage REST API](https://docs.microsoft.com
 2. [Usage](#usage)
 3. [Authorization Methods](#authorization-methods)
 4. [API Coverage Status](#api-coverage-Status)
+5. [To-Do List](#to-do-list)
 
 ## Description
 
@@ -41,6 +42,13 @@ If you want to download a Blob from this page, just click on `Name` and it will 
 
 The other actions work similar, but of course you don't need to use this via UI - you can also just it like in the sample code below.
 
+You can use the "Request Test"-page (alpha version) to view the "raw" HttpResponse for each Request (see it as a "debug"-functionality). To use it, just select "Open Test-Page" from the "Blob Storage Connection"-pages
+
+![Test Page](./docs/screenshot-open-test-page-01.png)
+
+On this page, just select the Connection you want to use, set the Action and optional parameters and press "Execute"
+
+![Test Page](./docs/screenshot-open-test-page-02.png)
 
 ## Usage
 
@@ -51,6 +59,8 @@ In general you'll mostly need two different objects to work with the API:
 The `codeunit 89001 "AZBSA Request Object"` contains all information relevant for a request. There are multiple overloads for "InitializeRequest", depending on what you need to do. The only parameter relevant for all requests is "Storage Account Name" (and the "Authorization"-information). So before any API-call you need to call `InitializeAuthorization` and `InitializeRequest` and you're ready to go.
 
 All API-methods are publicly available in `codeunit 89000 "AZBSA Blob Storage API"`.
+
+You can also make use of "optional URI parameters" (e.g. "maxresults" for ["List Blobs"](https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs)). The "Request Object" contains some functions for predefined parameters (SetTimeoutParameter, SetVersionIdParameter, SetSnapshotParameter, SetPrefixParameter, SetDelimiterParameter, SetMaxResultsParameter), but you can also use a "generic" approach with the function "AddOptionalUriParameter(Key, Value)".
 
 
 ### Sample Code
@@ -136,3 +146,13 @@ Put Page | Page blobs only |  |
 Get Page Ranges | Page blobs only |  | 
 Incremental Copy Blob | Page blobs only |  | 
 Append Block | Append blobs only |  | 
+
+
+## To-Do List
+
+These topics are currently on the to-do list:
+
+- Make "Request Test"-page more robust
+- Add handling for optional Request Headers
+- Extend handling for optional URI parameters
+- Reproduce further API functions
