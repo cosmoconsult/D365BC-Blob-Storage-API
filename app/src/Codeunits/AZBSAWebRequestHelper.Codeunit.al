@@ -18,7 +18,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         DeleteContainerOperationNotSuccessfulErr: Label 'Could not delete container %1.', Comment = '%1 = Container Name';
 
     // #region GET-Request
-    procedure GetResponseAsText(RequestObject: Codeunit "AZBSA Request Object"; var ResponseText: Text)
+    procedure GetResponseAsText(var RequestObject: Codeunit "AZBSA Request Object"; var ResponseText: Text)
     var
         Response: HttpResponseMessage;
     begin
@@ -28,7 +28,7 @@ codeunit 89004 "AZBSA Web Request Helper"
             Error(ReadResponseFailedErr);
     end;
 
-    procedure GetResponseAsStream(RequestObject: Codeunit "AZBSA Request Object"; var Stream: InStream)
+    procedure GetResponseAsStream(var RequestObject: Codeunit "AZBSA Request Object"; var Stream: InStream)
     var
         Response: HttpResponseMessage;
     begin
@@ -38,7 +38,7 @@ codeunit 89004 "AZBSA Web Request Helper"
             Error(ReadResponseFailedErr);
     end;
 
-    local procedure GetResponse(RequestObject: Codeunit "AZBSA Request Object"; var Response: HttpResponseMessage)
+    local procedure GetResponse(var RequestObject: Codeunit "AZBSA Request Object"; var Response: HttpResponseMessage)
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
         Client: HttpClient;
@@ -48,27 +48,28 @@ codeunit 89004 "AZBSA Web Request Helper"
 
         if not Client.Get(RequestObject.ConstructUri(), Response) then
             Error(IntitialGetFailedErr, RequestObject.ConstructUri(), Response.HttpStatusCode, Response.ReasonPhrase);
+        RequestObject.SetHttpResponse(Response);
         if not Response.IsSuccessStatusCode then
             Error(IntitialGetFailedErr, FormatHelper.RemoveSasTokenParameterFromUrl(RequestObject.ConstructUri()), Response.HttpStatusCode, Response.ReasonPhrase);
     end;
     // #endregion GET-Request
 
     // #region PUT-Request
-    procedure PutOperation(RequestObject: Codeunit "AZBSA Request Object"; OperationNotSuccessfulErr: Text)
+    procedure PutOperation(var RequestObject: Codeunit "AZBSA Request Object"; OperationNotSuccessfulErr: Text)
     var
         Content: HttpContent;
     begin
         PutOperation(RequestObject, Content, OperationNotSuccessfulErr);
     end;
 
-    procedure PutOperation(RequestObject: Codeunit "AZBSA Request Object"; Content: HttpContent; OperationNotSuccessfulErr: Text)
+    procedure PutOperation(var RequestObject: Codeunit "AZBSA Request Object"; Content: HttpContent; OperationNotSuccessfulErr: Text)
     var
         Response: HttpResponseMessage;
     begin
         PutOperation(RequestObject, Content, Response, OperationNotSuccessfulErr);
     end;
 
-    local procedure PutOperation(RequestObject: Codeunit "AZBSA Request Object"; Content: HttpContent; var Response: HttpResponseMessage; OperationNotSuccessfulErr: Text)
+    local procedure PutOperation(var RequestObject: Codeunit "AZBSA Request Object"; Content: HttpContent; var Response: HttpResponseMessage; OperationNotSuccessfulErr: Text)
     var
         Client: HttpClient;
         HttpRequestType: Enum "Http Request Type";
@@ -82,6 +83,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         RequestMsg.SetRequestUri(RequestObject.ConstructUri());
         // Send Request    
         Client.Send(RequestMsg, Response);
+        RequestObject.SetHttpResponse(Response);
         if not Response.IsSuccessStatusCode then
             Error(HttpResponseInfoErr, OperationNotSuccessfulErr, Response.HttpStatusCode, Response.ReasonPhrase);
     end;
@@ -97,21 +99,23 @@ codeunit 89004 "AZBSA Web Request Helper"
         exit(VarContent <> '');
     end;
     // #endregion PUT-Request
-    procedure DeleteOperation(RequestObject: Codeunit "AZBSA Request Object")
+
+    // #region DELETE-Request
+    procedure DeleteOperation(var RequestObject: Codeunit "AZBSA Request Object")
     var
         Response: HttpResponseMessage;
     begin
         DeleteOperation(RequestObject, Response, StrSubstNo(DeleteContainerOperationNotSuccessfulErr, RequestObject.GetContainerName()));
     end;
 
-    procedure DeleteOperation(RequestObject: Codeunit "AZBSA Request Object"; OperationNotSuccessfulErr: Text)
+    procedure DeleteOperation(var RequestObject: Codeunit "AZBSA Request Object"; OperationNotSuccessfulErr: Text)
     var
         Response: HttpResponseMessage;
     begin
         DeleteOperation(RequestObject, Response, OperationNotSuccessfulErr);
     end;
 
-    local procedure DeleteOperation(RequestObject: Codeunit "AZBSA Request Object"; var Response: HttpResponseMessage; OperationNotSuccessfulErr: Text)
+    local procedure DeleteOperation(var RequestObject: Codeunit "AZBSA Request Object"; var Response: HttpResponseMessage; OperationNotSuccessfulErr: Text)
     var
         Client: HttpClient;
         HttpRequestType: Enum "Http Request Type";
@@ -123,9 +127,11 @@ codeunit 89004 "AZBSA Web Request Helper"
         RequestMsg.SetRequestUri(RequestObject.ConstructUri());
         // Send Request    
         Client.Send(RequestMsg, Response);
+        RequestObject.SetHttpResponse(Response);
         if not Response.IsSuccessStatusCode then
             Error(HttpResponseInfoErr, OperationNotSuccessfulErr, Response.HttpStatusCode, Response.ReasonPhrase);
     end;
+    // #endregion DELETE-Request
 
     // #region HTTP Header Helper
     procedure AddBlobPutBlockBlobContentHeaders(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; var SourceStream: InStream)
