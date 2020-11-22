@@ -20,6 +20,7 @@ codeunit 89001 "AZBSA Request Object"
         Operation: Enum "AZBSA Blob Storage Operation";
         HeaderValues: Dictionary of [Text, Text];
         OptionalHeaderValues: Dictionary of [Text, Text];
+        OptionalUriParameters: Dictionary of [Text, Text];
         KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
         Response: HttpResponseMessage;
 
@@ -135,6 +136,14 @@ codeunit 89001 "AZBSA Request Object"
         NewResponse := Response;
     end;
 
+    procedure GetHttpResponseAsText(): Text;
+    var
+        ResponseText: Text;
+    begin
+        Response.Content.ReadAs(ResponseText);
+        exit(ResponseText)
+    end;
+
     procedure GetHttpResponseStatusCode(): Integer
     begin
         exit(Response.HttpStatusCode());
@@ -168,9 +177,83 @@ codeunit 89001 "AZBSA Request Object"
         Clear(HeaderValues);
     end;
 
+    // #region Optional Uri Parameters
+    procedure AddOptionalUriParameter("Key": Text; "Value": Text)
+    begin
+        if OptionalUriParameters.ContainsKey("Key") then
+            OptionalUriParameters.Remove("Key");
+        OptionalUriParameters.Add("Key", "Value");
+    end;
+
+    procedure AddOptionalUriParameter(NewOptionalUriParameters: Dictionary of [Text, Text])
+    begin
+        OptionalUriParameters := NewOptionalUriParameters;
+    end;
+
+    /// <summary>
+    /// Sets the optional timeout value for the Request
+    /// </summary>
+    /// <param name="Value">Timeout in seconds. Most operations have a max. limit of 30 seconds. For  more Information see: https://docs.microsoft.com/en-us/rest/api/storageservices/setting-timeouts-for-blob-service-operations</param>
+    procedure SetTimeoutParameter("Value": Integer)
+    begin
+        AddOptionalUriParameter('timeout', Format("Value"));
+    end;
+
+    /// <summary>
+    /// The versionid parameter is an opaque DateTime value that, when present, specifies the Version of the blob to retrieve.
+    /// </summary>
+    /// <param name="Value">The DateTime identifying the Version</param>
+    procedure SetVersionIdParameter("Value": DateTime)
+    begin
+        // TODO: Add Version check, currently target API is not supported
+        // Only allowed for API-Version 2019-12-12 and newer
+        AddOptionalUriParameter('versionid', Format("Value")); // TODO: Check DateTime-format for URI
+    end;
+
+    /// <summary>
+    /// The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. 
+    /// </summary>
+    /// <param name="Value">The DateTime identifying the Snapshot</param>
+    procedure SetSnapshotParameter("Value": DateTime)
+    begin
+        AddOptionalUriParameter('snapshot', Format("Value")); // TODO: Check DateTime-format for URI
+    end;
+
+    /// <summary>
+    /// Filters the results to return only blobs whose names begin with the specified prefix.
+    /// </summary>
+    /// <param name="Value">Prefix to search for</param>
+    procedure SetPrefixParameter("Value": Text)
+    begin
+        AddOptionalUriParameter('prefix', "Value");
+    end;
+
+    /// <summary>
+    /// When the request includes this parameter, the operation returns a BlobPrefix element in the response body 
+    /// that acts as a placeholder for all blobs whose names begin with the same substring up to the appearance of the delimiter character. 
+    /// The delimiter may be a single character or a string.
+    /// </summary>
+    /// <param name="Value">Delimiting character/string</param>
+    procedure SetDelimiterParameter("Value": Text)
+    begin
+        AddOptionalUriParameter('delimiter', "Value");
+    end;
+
+    /// <summary>
+    /// Specifies the maximum number of blobs to return
+    /// </summary>
+    /// <param name="Value">Max. number of results to return. Must be positive, must not be greater than 5000</param>
+    procedure SetMaxResultsParameter("Value": Integer)
+    begin
+        AddOptionalUriParameter('maxresults', Format("Value"));
+    end;
+
+    // #endregion Optional Uri Parameters
+
     // #region Uri generation
     procedure ConstructUri(): Text
     var
+        FormatHelper: Codeunit "AZBSA Format Helper";
         AuthorizationType: Enum "AZBSA Authorization Type";
         ConstructedUrl: Text;
         BlobStorageBaseUrlLbl: Label 'https://%1.blob.core.windows.net', Comment = '%1 = Storage Account Name';
@@ -194,13 +277,27 @@ codeunit 89001 "AZBSA Request Object"
                 ConstructedUrl := StrSubstNo(SingleBlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>/<BlobName>
         end;
 
+        AddOptionalUriParameters(ConstructedUrl);
+
         // If SaS-Token is used for authentication, append it to the URI
         if AuthType = AuthorizationType::SasToken then
-            if ConstructedUrl.Contains('?') then
-                ConstructedUrl += '&' + Secret
-            else
-                ConstructedUrl += '?' + Secret;
+            FormatHelper.AppendToUri(ConstructedUrl, '', Secret);
         exit(ConstructedUrl);
+    end;
+
+    local procedure AddOptionalUriParameters(var Uri: Text)
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        ParameterIdentifier: Text;
+        ParameterValue: Text;
+    begin
+        if OptionalUriParameters.Count = 0 then
+            exit;
+
+        foreach ParameterIdentifier in OptionalUriParameters.Keys do begin
+            OptionalUriParameters.Get(ParameterIdentifier, ParameterValue);
+            FormatHelper.AppendToUri(Uri, ParameterIdentifier, ParameterValue);
+        end;
     end;
 
     local procedure TestConstructUrlParameter()

@@ -303,6 +303,16 @@
           <note from="Developer" annotates="general" priority="2">%1 = Blob Name; %2 = Container Name</note>
           <note from="Xliff Generator" annotates="general" priority="3">Codeunit AZBSA Blob Storage API - NamedType UploadBlobOperationNotSuccessfulErr</note>
         </trans-unit>
+        <trans-unit id="Codeunit 2971821442 - Method 2022965485 - NamedType 2627506007" size-unit="char" translate="yes" xml:space="preserve">
+          <source>%1%2=%3</source>
+          <note from="Developer" annotates="general" priority="2">%1 = Concatenation character, %2 = Parameter Identifer, %3 = Parameter Value</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit AZBSA Format Helper - Method AppendToUri - NamedType AppendType1Lbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2971821442 - Method 2022965485 - NamedType 3865131514" size-unit="char" translate="yes" xml:space="preserve">
+          <source>%1%2</source>
+          <note from="Developer" annotates="general" priority="2">%1 = Concatenation character, %2 = Parameter Value</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit AZBSA Format Helper - Method AppendToUri - NamedType AppendType2Lbl</note>
+        </trans-unit>
         <trans-unit id="Codeunit 2971821442 - Method 2216964547 - NamedType 3913890867" size-unit="char" translate="yes" xml:space="preserve">
           <source>&lt;Weekday Text,3&gt;, &lt;Day&gt; &lt;Month Text,3&gt; &lt;Year4&gt; &lt;Hours24,2&gt;:&lt;Minutes,2&gt;:&lt;Seconds,2&gt;</source>
           <note from="Developer" annotates="general" priority="2"></note>
@@ -462,6 +472,16 @@
           <source>The Name of the Container (or Directory) to upload files to</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Conn. Card - Control Target Container Name - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2574213390 - Action 4274505735 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open Test-Page</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Conn. Card - Action OpenTester - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2574213390 - Action 4274505735 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>xxx</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Conn. Card - Action OpenTester - Property ToolTip</note>
         </trans-unit>
         <trans-unit id="Page 2574213390 - Action 176562519 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>View Container</source>
@@ -663,6 +683,16 @@
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Connections - Control Target Container Name - Property ToolTip</note>
         </trans-unit>
+        <trans-unit id="Page 3284536675 - Action 4274505735 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open Test-Page</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Connections - Action OpenTester - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3284536675 - Action 4274505735 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>xxx</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Connections - Action OpenTester - Property ToolTip</note>
+        </trans-unit>
         <trans-unit id="Page 3284536675 - Action 705173316 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>View</source>
           <note from="Developer" annotates="general" priority="2"></note>
@@ -777,6 +807,81 @@
           <source>Download a file from the Container (specified in "Source Container Name") of the Storage Account</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Blob Stor. Connections - Action DownloadFileUI - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2393680545 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Optional URI Parameters</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Req. Test URI Params - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2393680545 - Control 2961552353 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Req. Test URI Params - Control Name - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2393680545 - Control 1131619133 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Req. Test URI Params - Control Value - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Request Test</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 1351956586 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control APIAction - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 1351956586 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>API Action</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control APIAction - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 1351956586 - Property 62802879" size-unit="char" translate="yes" xml:space="preserve">
+          <source>List Containers,Create Container,Delete Container</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control APIAction - Property OptionCaption</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 2101801964 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control ContainerName - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 2101801964 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Container Name</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control ContainerName - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 2521344208 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control BlobName - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 2521344208 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Blob Name</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control BlobName - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 889292200 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Result</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control ResultText - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Control 889292200 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Control ResultText - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1866852864 - Action 1561766673 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>XXX</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page AZBSA Request Test - Action Execute - Property ToolTip</note>
         </trans-unit>
         <trans-unit id="Enum 1077029243 - EnumValue 2910642922 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>2017-04-17</source>
