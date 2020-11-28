@@ -162,6 +162,77 @@ codeunit 89001 "AZBSA Request Object"
         OptionalHeaderValues.Add("Key", "Value");
     end;
 
+    procedure SetLeaseIdHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-lease-id', "Value");
+    end;
+
+    procedure SetLeaseActionHeader("Value": Text)
+    begin
+        // TODO: Check if "Value" should be an option or enum
+        if not ("Value" in ['acquire', 'renew', 'change', 'break']) then
+            Error('Not allowed value');
+        AddOptionalHeader('x-ms-lease-action', "Value");
+    end;
+
+    procedure SetLeaseBreakPeriodHeader("Value": Integer)
+    var
+        LeaseAction: Text;
+    begin
+        if not OptionalHeaderValues.Get('x-ms-lease-action', LeaseAction) then
+            Error('You need to specify the "x-ms-lease-action"-Header to use this');
+        if LeaseAction <> 'break' then
+            Error('"x-ms-lease-break-period" can only be set if "x-ms-lease-action" is "break"');
+        AddOptionalHeader('x-ms-lease-break-period', Format("Value"));
+    end;
+
+    procedure SetLeaseDurationHeader("Value": Integer)
+    var
+        LeaseAction: Text;
+    begin
+        if not OptionalHeaderValues.Get('x-ms-lease-action', LeaseAction) then
+            Error('You need to specify the "x-ms-lease-action"-Header to use this');
+        if LeaseAction <> 'acquire' then
+            Error('"x-ms-lease-duration" can only be set if "x-ms-lease-action" is "acquire"');
+        AddOptionalHeader('x-ms-lease-duration', Format("Value"));
+    end;
+
+    procedure SetProposedLeaseIdHeader("Value": Text)
+    var
+        LeaseAction: Text;
+    begin
+        if not OptionalHeaderValues.Get('x-ms-lease-action', LeaseAction) then
+            Error('You need to specify the "x-ms-lease-action"-Header to use this');
+        if not (LeaseAction in ['acquire', 'change']) then
+            Error('"x-ms-proposed-lease-id" can only be set if "x-ms-lease-action" is "acquire" or "change"');
+        AddOptionalHeader('x-ms-proposed-lease-id', "Value");
+    end;
+
+    procedure SetOriginHeader("Value": Text)
+    begin
+        AddOptionalHeader('Origin', "Value");
+    end;
+
+    procedure SetClientRequestIdHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-client-request-id', "Value");
+    end;
+
+    procedure SetBlobPublicAccessHeader("Value": Text)
+    begin
+        // TODO: Check if "Value" should be an option or enum
+        if not ("Value" in ['container', 'blob']) then
+            Error('Not allowed value');
+        AddOptionalHeader('x-ms-blob-public-access', "Value");
+    end;
+
+    procedure SetMetadataNameValueHeader("Name": Text; "Value": Text)
+    var
+        MetaKeyValuePairLbl: Label 'x-ms-meta-%1', Comment = '%1 = Key';
+    begin
+        AddOptionalHeader(StrSubstNo(MetaKeyValuePairLbl, "Name"), "Value");
+    end;
+
     procedure AddHeader(var Headers: HttpHeaders; "Key": Text; "Value": Text)
     begin
         if HeaderValues.ContainsKey("Key") then
@@ -175,6 +246,19 @@ codeunit 89001 "AZBSA Request Object"
     procedure ClearHeaders()
     begin
         Clear(HeaderValues);
+    end;
+
+    procedure GetCombinedHeadersDictionary(var NewHeaders: Dictionary of [Text, Text])
+    var
+        HeaderKey: Text;
+    begin
+        Clear(NewHeaders);
+        foreach HeaderKey in HeaderValues.Keys do
+            NewHeaders.Add(HeaderKey, HeaderValues.Get(HeaderKey));
+
+        foreach HeaderKey in OptionalHeaderValues.Keys do
+            if not NewHeaders.ContainsKey(HeaderKey) then
+                NewHeaders.Add(HeaderKey, OptionalHeaderValues.Get(HeaderKey));
     end;
 
     // #region Optional Uri Parameters
@@ -267,6 +351,7 @@ codeunit 89001 "AZBSA Request Object"
         ReqAuthAccessKey: Codeunit "AZBSA Req. Auth. Access Key";
     begin
         ReqAuthAccessKey.SetHeaderValues(HeaderValues);
+        ReqAuthAccessKey.SetOptionalHeaderValues(OptionalHeaderValues);
         exit(ReqAuthAccessKey.GetSharedKeySignature(HttpRequestType, StorageAccountName, ConstructUri(), Secret));
     end;
     // #endregion Shared Key Signature Generation

@@ -44,7 +44,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         Client: HttpClient;
         HttpRequestType: Enum "Http Request Type";
     begin
-        HandleAuthorizationHeaders(HttpRequestType::GET, Client, RequestObject);
+        HandleHeaders(HttpRequestType::GET, Client, RequestObject);
 
         if not Client.Get(RequestObject.ConstructUri(), Response) then
             Error(IntitialGetFailedErr, RequestObject.ConstructUri(), Response.HttpStatusCode, Response.ReasonPhrase);
@@ -75,7 +75,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         HttpRequestType: Enum "Http Request Type";
         RequestMsg: HttpRequestMessage;
     begin
-        HandleAuthorizationHeaders(HttpRequestType::PUT, Client, RequestObject);
+        HandleHeaders(HttpRequestType::PUT, Client, RequestObject);
         // Prepare HttpRequestMessage
         RequestMsg.Method(Format(HttpRequestType::PUT));
         if ContentSet(Content) then
@@ -121,7 +121,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         HttpRequestType: Enum "Http Request Type";
         RequestMsg: HttpRequestMessage;
     begin
-        HandleAuthorizationHeaders(HttpRequestType::DELETE, Client, RequestObject);
+        HandleHeaders(HttpRequestType::DELETE, Client, RequestObject);
         // Prepare HttpRequestMessage
         RequestMsg.Method(Format(HttpRequestType::DELETE));
         RequestMsg.SetRequestUri(RequestObject.ConstructUri());
@@ -207,20 +207,38 @@ codeunit 89004 "AZBSA Web Request Helper"
         RequestObject.AddHeader(Headers, 'x-ms-blob-type', Format(BlobType));
     end;
 
-    local procedure HandleAuthorizationHeaders(HttpRequestType: Enum "Http Request Type"; var Client: HttpClient; var RequestObject: Codeunit "AZBSA Request Object")
+    local procedure HandleHeaders(HttpRequestType: Enum "Http Request Type"; var Client: HttpClient; var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        Headers: HttpHeaders;
+    begin
+        Headers := Client.DefaultRequestHeaders;
+        HandleAuthorizationHeaders(HttpRequestType, RequestObject, Headers);
+        HandleOptionalHeaders(RequestObject, Headers);
+    end;
+
+    local procedure HandleAuthorizationHeaders(HttpRequestType: Enum "Http Request Type"; var RequestObject: Codeunit "AZBSA Request Object"; var Headers: HttpHeaders)
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
         UsedDateTimeText: Text;
         AuthType: enum "AZBSA Authorization Type";
-        Headers: HttpHeaders;
     begin
         if RequestObject.GetAuthorizationType() = AuthType::SasToken then
             exit;
         UsedDateTimeText := FormatHelper.GetRfc1123DateTime();
-        Headers := Client.DefaultRequestHeaders;
         RequestObject.AddHeader(Headers, 'x-ms-date', UsedDateTimeText);
         RequestObject.AddHeader(Headers, 'x-ms-version', Format(RequestObject.GetApiVersion()));
         RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetSharedKeySignature(HttpRequestType));
+    end;
+
+    local procedure HandleOptionalHeaders(var RequestObject: Codeunit "AZBSA Request Object"; var Headers: HttpHeaders)
+    var
+        CombinedHeaders: Dictionary of [Text, Text];
+        HeaderKey: Text;
+    begin
+        RequestObject.GetCombinedHeadersDictionary(CombinedHeaders);
+        foreach HeaderKey in CombinedHeaders.Keys do
+            if not Headers.Contains(HeaderKey) then
+                RequestObject.AddHeader(Headers, HeaderKey, CombinedHeaders.Get(HeaderKey));
     end;
     // #endregion
 

@@ -12,6 +12,7 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
 
     var
         HeaderValues: Dictionary of [Text, Text];
+        OptionalHeaderValues: Dictionary of [Text, Text];
         KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
 
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
@@ -19,6 +20,10 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
         HeaderValues := NewHeaderValues;
     end;
 
+    procedure SetOptionalHeaderValues(NewOptionalHeaderValues: Dictionary of [Text, Text])
+    begin
+        OptionalHeaderValues := NewOptionalHeaderValues;
+    end;
     // #region Shared Key Signature Generation
 
     procedure GetSharedKeySignature(HttpRequestType: Enum "Http Request Type"; StorageAccount: Text; UriString: Text; Secret: Text): Text
@@ -53,7 +58,7 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
         StringToSign += GetHeaderValueOrEmpty('If-None-Match') + FormatHelper.GetNewLineCharacter(); // If-None-Match
         StringToSign += GetHeaderValueOrEmpty('If-Unmodified-Since') + FormatHelper.GetNewLineCharacter(); // If-Unmodified-Since
         StringToSign += GetHeaderValueOrEmpty('Range') + FormatHelper.GetNewLineCharacter(); // Range        
-        StringToSign += GetCanonicalizedHeaders(HeaderValues) + FormatHelper.GetNewLineCharacter();
+        StringToSign += GetCanonicalizedHeaders(HeaderValues, OptionalHeaderValues) + FormatHelper.GetNewLineCharacter();
         StringToSign += GetCanonicalizedResource(StorageAccount, UriString);
         exit(StringToSign);
     end;
@@ -67,19 +72,37 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
         exit(ReturnValue);
     end;
 
-    local procedure GetCanonicalizedHeaders(Headers: Dictionary of [Text, Text]): Text
+    local procedure GetCanonicalizedHeaders(Headers: Dictionary of [Text, Text]; OptionalHeaders: Dictionary of [Text, Text]): Text
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
+        CombinedHeaders: Dictionary of [Text, Text];
         HeaderKey: Text;
         CanonicalizedHeaders: Text;
     begin
-        foreach HeaderKey in Headers.Keys do
+        GetCombinedHeadersDictionary(Headers, OptionalHeaders, CombinedHeaders);
+        foreach HeaderKey in CombinedHeaders.Keys do
             if (HeaderKey.ToLower().StartsWith('x-ms-')) then begin
                 if CanonicalizedHeaders <> '' then
                     CanonicalizedHeaders += FormatHelper.GetNewLineCharacter();
-                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey, Headers.Get(HeaderKey))
+                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey.ToLower(), CombinedHeaders.Get(HeaderKey))
             end;
         exit(CanonicalizedHeaders);
+    end;
+
+    local procedure GetCombinedHeadersDictionary(Headers: Dictionary of [Text, Text]; OptionalHeaders: Dictionary of [Text, Text]; var NewHeaders: Dictionary of [Text, Text])
+    var
+        HeaderKey: Text;
+    begin
+        Clear(NewHeaders);
+        foreach HeaderKey in Headers.Keys do
+            if (HeaderKey.ToLower().StartsWith('x-ms-')) then
+                NewHeaders.Add(HeaderKey, Headers.Get(HeaderKey));
+
+        foreach HeaderKey in OptionalHeaders.Keys do
+            if (HeaderKey.ToLower().StartsWith('x-ms-')) then
+                if not NewHeaders.ContainsKey(HeaderKey) then
+                    NewHeaders.Add(HeaderKey, OptionalHeaders.Get(HeaderKey));
+        // TODO: Check if additional sorting is necessary
     end;
 
     local procedure GetCanonicalizedResource(StorageAccount: Text; UriString: Text): Text
