@@ -17,14 +17,14 @@ codeunit 89002 "AZBSA Helper Library"
     //PropertyPlaceholderLbl: Label '%1: %2', Comment = '%1 = Property Name, %2 = Property Value';
 
     // #region Container-specific Helper
-    procedure ContainerNodeListTotempRecord(NodeList: XmlNodeList; var BlobStorageContent: Record "AZBSA Container Content")
+    procedure ContainerNodeListTotempRecord(NodeList: XmlNodeList; var ContainerContent: Record "AZBSA Container Content")
     begin
-        NodeListToTempRecord(NodeList, './/Name', BlobStorageContent);
+        NodeListToTempRecord(NodeList, './/Name', ContainerContent);
     end;
 
-    procedure ContainerNodeListTotempRecord(NodeList: XmlNodeList; var BlobStorageContainer: Record "AZBSA Container")
+    procedure ContainerNodeListTotempRecord(NodeList: XmlNodeList; var Container: Record "AZBSA Container")
     begin
-        NodeListToTempRecord(NodeList, './/Name', BlobStorageContainer);
+        NodeListToTempRecord(NodeList, './/Name', Container);
     end;
 
     procedure CreateContainerNodeListFromResponse(ResponseAsText: Text): XmlNodeList
@@ -41,54 +41,54 @@ codeunit 89002 "AZBSA Helper Library"
 
     procedure BlobNodeListToTempRecord(NodeList: XmlNodeList)
     var
-        BlobStorageContent: Record "AZBSA Container Content";
+        ContainerContent: Record "AZBSA Container Content";
     begin
-        BlobNodeListToTempRecord(NodeList, BlobStorageContent);
+        BlobNodeListToTempRecord(NodeList, ContainerContent);
     end;
 
-    procedure BlobNodeListToTempRecord(NodeList: XmlNodeList; var BlobStorageContent: Record "AZBSA Container Content")
+    procedure BlobNodeListToTempRecord(NodeList: XmlNodeList; var ContainerContent: Record "AZBSA Container Content")
     begin
-        NodeListToTempRecord(NodeList, './/Name', BlobStorageContent);
+        NodeListToTempRecord(NodeList, './/Name', ContainerContent);
     end;
     // #endregion
 
-    procedure ShowTempRecordLookup(var BlobStorageContent: Record "AZBSA Container Content")
+    procedure ShowTempRecordLookup(var ContainerContent: Record "AZBSA Container Content")
     var
-        ContainerContents: Page "AZBSA Container Content";
+        ContainerContents: Page "AZBSA Container Contents";
     begin
-        if BlobStorageContent.IsEmpty() then begin
+        if ContainerContent.IsEmpty() then begin
             Message(ResultCollectionEmptyMsg);
             exit;
         end;
-        ContainerContents.InitializeFromTempRec(BlobStorageContent);
+        ContainerContents.InitializeFromTempRec(ContainerContent);
         ContainerContents.Run();
     end;
 
-    procedure ShowTempRecordLookup(var BlobStorageContainer: Record "AZBSA Container")
+    procedure ShowTempRecordLookup(var Container: Record "AZBSA Container")
     begin
-        if BlobStorageContainer.IsEmpty() then begin
+        if Container.IsEmpty() then begin
             Message(ResultCollectionEmptyMsg);
             exit;
         end;
-        Page.Run(0, BlobStorageContainer);
+        Page.Run(0, Container);
     end;
 
-    procedure LookupContainerContent(var BlobStorageContent: Record "AZBSA Container Content"): Text
+    procedure LookupContainerContent(var ContainerContent: Record "AZBSA Container Content"): Text
     var
-        BlobStorageContentReturn: Record "AZBSA Container Content";
-        ContainerContent: Page "AZBSA Container Content";
+        ContainerContentReturn: Record "AZBSA Container Content";
+        ContainerContents: Page "AZBSA Container Contents";
     begin
-        if BlobStorageContent.IsEmpty() then
+        if ContainerContent.IsEmpty() then
             exit('');
 
-        BlobStorageContent.FindSet(false, false);
+        ContainerContent.FindSet(false, false);
         repeat
-            ContainerContent.AddEntry(BlobStorageContent);
-        until BlobStorageContent.Next() = 0;
-        ContainerContent.LookupMode(true);
-        if ContainerContent.RunModal() = Action::LookupOK then begin
-            ContainerContent.GetRecord(BlobStorageContentReturn);
-            exit(BlobStorageContentReturn."Full Name");
+            ContainerContents.AddEntry(ContainerContent);
+        until ContainerContent.Next() = 0;
+        ContainerContents.LookupMode(true);
+        if ContainerContents.RunModal() = Action::LookupOK then begin
+            ContainerContents.GetRecord(ContainerContent);
+            exit(ContainerContentReturn."Full Name");
         end;
     end;
 
@@ -123,32 +123,32 @@ codeunit 89002 "AZBSA Helper Library"
         exit(Value);
     end;
 
-    local procedure NodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var BlobStorageContent: Record "AZBSA Container Content")
+    local procedure NodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var ContainerContent: Record "AZBSA Container Content")
     var
         Node: XmlNode;
     begin
-        if not BlobStorageContent.IsTemporary() then
+        if not ContainerContent.IsTemporary() then
             Error('');
-        BlobStorageContent.DeleteAll();
+        ContainerContent.DeleteAll();
 
         if NodeList.Count = 0 then
             exit;
         foreach Node in NodeList do
-            BlobStorageContent.AddNewEntryFromNode(Node, XPathName);
+            ContainerContent.AddNewEntryFromNode(Node, XPathName);
     end;
 
-    local procedure NodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var BlobStorageContainer: Record "AZBSA Container")
+    local procedure NodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var Container: Record "AZBSA Container")
     var
         Node: XmlNode;
     begin
-        if not BlobStorageContainer.IsTemporary() then
+        if not Container.IsTemporary() then
             Error('');
-        BlobStorageContainer.DeleteAll();
+        Container.DeleteAll();
 
         if NodeList.Count = 0 then
             exit;
         foreach Node in NodeList do
-            BlobStorageContainer.AddNewEntryFromNode(Node, XPathName);
+            Container.AddNewEntryFromNode(Node, XPathName);
     end;
     // #endregion
 

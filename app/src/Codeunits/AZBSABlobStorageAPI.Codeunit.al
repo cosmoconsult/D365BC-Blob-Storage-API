@@ -55,9 +55,9 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// <param name="ShowOutput">Determines if the result should be shown as a Page to the user.</param>
     procedure ListContainers(var RequestObject: Codeunit "AZBSA Request Object"; ShowOutput: Boolean)
     var
-        BlobStorageContainer: Record "AZBSA Container";
+        Container: Record "AZBSA Container";
     begin
-        ListContainers(RequestObject, BlobStorageContainer, ShowOutput);
+        ListContainers(RequestObject, Container, ShowOutput);
     end;
 
     /// <summary>
@@ -65,9 +65,9 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2
     /// </summary>
     /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
-    /// <param name="BlobStorageContainer">Collection of the result (temporary record).</param>
+    /// <param name="Container">Collection of the result (temporary record).</param>
     /// <param name="ShowOutput">Determines if the result should be shown as a Page to the user.</param>
-    procedure ListContainers(var RequestObject: Codeunit "AZBSA Request Object"; var BlobStorageContainer: Record "AZBSA Container"; ShowOutput: Boolean)
+    procedure ListContainers(var RequestObject: Codeunit "AZBSA Request Object"; var Container: Record "AZBSA Container"; ShowOutput: Boolean)
     var
         WebRequestHelper: Codeunit "AZBSA Web Request Helper";
         HelperLibrary: Codeunit "AZBSA Helper Library";
@@ -80,10 +80,10 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
 
         NodeList := HelperLibrary.CreateContainerNodeListFromResponse(ResponseText);
-        BlobStorageContainer.SetBaseInfos(RequestObject);
-        HelperLibrary.ContainerNodeListTotempRecord(NodeList, BlobStorageContainer);
+        Container.SetBaseInfos(RequestObject);
+        HelperLibrary.ContainerNodeListTotempRecord(NodeList, Container);
         if ShowOutput then
-            HelperLibrary.ShowTempRecordLookup(BlobStorageContainer);
+            HelperLibrary.ShowTempRecordLookup(Container);
     end;
     // #endregion
 
@@ -115,9 +115,9 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// <param name="ShowOutput">Determines if the result should be shown as a Page to the user.</param>
     procedure ListBlobs(var RequestObject: Codeunit "AZBSA Request Object"; ShowOutput: Boolean)
     var
-        BlobStorageContent: Record "AZBSA Container Content";
+        ContainerContent: Record "AZBSA Container Content";
     begin
-        ListBlobs(RequestObject, BlobStorageContent, ShowOutput);
+        ListBlobs(RequestObject, ContainerContent, ShowOutput);
     end;
 
     /// <summary>
@@ -125,9 +125,9 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs
     /// </summary>
     /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
-    /// <param name="BlobStorageContent">Collection of the result (temporary record).</param>
+    /// <param name="ContainerContent">Collection of the result (temporary record).</param>
     /// <param name="ShowOutput">Determines if the result should be shown as a Page to the user.</param>
-    procedure ListBlobs(var RequestObject: Codeunit "AZBSA Request Object"; var BlobStorageContent: Record "AZBSA Container Content"; ShowOutput: Boolean)
+    procedure ListBlobs(var RequestObject: Codeunit "AZBSA Request Object"; var ContainerContent: Record "AZBSA Container Content"; ShowOutput: Boolean)
     var
         HelperLibrary: Codeunit "AZBSA Helper Library";
         WebRequestHelper: Codeunit "AZBSA Web Request Helper";
@@ -140,10 +140,10 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
 
         NodeList := HelperLibrary.CreateBlobNodeListFromResponse(ResponseText);
-        BlobStorageContent.SetBaseInfos(RequestObject);
-        HelperLibrary.BlobNodeListToTempRecord(NodeList, BlobStorageContent);
+        ContainerContent.SetBaseInfos(RequestObject);
+        HelperLibrary.BlobNodeListToTempRecord(NodeList, ContainerContent);
         if ShowOutput then
-            HelperLibrary.ShowTempRecordLookup(BlobStorageContent);
+            HelperLibrary.ShowTempRecordLookup(ContainerContent);
     end;
     // #endregion (GET) ListContainerContents
 
@@ -229,14 +229,14 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
     procedure DownloadBlobAsFileWithSelect(var RequestObject: Codeunit "AZBSA Request Object")
     var
-        BlobStorageContent: Record "AZBSA Container Content";
+        ContainerContent: Record "AZBSA Container Content";
         HelperLibrary: Codeunit "AZBSA Helper Library";
         BlobName: Text;
     begin
         // Get list of available blobs
-        ListBlobs(RequestObject, BlobStorageContent, false);
+        ListBlobs(RequestObject, ContainerContent, false);
         // Show Lookup Page to select Blob to download
-        BlobName := HelperLibrary.LookupContainerContent(BlobStorageContent);
+        BlobName := HelperLibrary.LookupContainerContent(ContainerContent);
         // Download Blob
         RequestObject.SetBlobName(BlobName);
         DownloadBlobAsFile(RequestObject);
@@ -290,14 +290,14 @@ codeunit 89000 "AZBSA Blob Storage API"
 
     procedure DeleteBlobFromContainerUI(var RequestObject: Codeunit "AZBSA Request Object")
     var
-        BlobStorageContent: Record "AZBSA Container Content";
+        ContainerContent: Record "AZBSA Container Content";
         HelperLibrary: Codeunit "AZBSA Helper Library";
         BlobName: Text;
     begin
         // Get list of available blobs
-        ListBlobs(RequestObject, BlobStorageContent, false);
+        ListBlobs(RequestObject, ContainerContent, false);
         // Show Lookup Page to select Blob to download
-        BlobName := HelperLibrary.LookupContainerContent(BlobStorageContent);
+        BlobName := HelperLibrary.LookupContainerContent(ContainerContent);
         // Download Blob
         RequestObject.SetBlobName(BlobName);
         DeleteBlobFromContainer(RequestObject);
