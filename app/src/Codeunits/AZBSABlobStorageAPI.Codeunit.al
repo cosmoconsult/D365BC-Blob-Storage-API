@@ -87,6 +87,12 @@ codeunit 89000 "AZBSA Blob Storage API"
     end;
     // #endregion
 
+    // #region (DELETE) Delete Containers
+    /// <summary>
+    /// Delete a Container in the Storage Account
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/delete-container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
     procedure DeleteContainer(var RequestObject: Codeunit "AZBSA Request Object")
     var
         WebRequestHelper: Codeunit "AZBSA Web Request Helper";
@@ -95,6 +101,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         RequestObject.SetOperation(Operation::DeleteContainer);
         WebRequestHelper.DeleteOperation(RequestObject, StrSubstNo(DeleteContainerOperationNotSuccessfulErr, RequestObject.GetContainerName()));
     end;
+    // #endregion (DELETE) Delete Containers
 
     // #region (GET) List Container Contents
     /// <summary>
