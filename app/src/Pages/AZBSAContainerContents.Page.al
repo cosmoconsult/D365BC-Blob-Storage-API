@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-page 89003 "AZBSA Container Content"
+page 89003 "AZBSA Container Contents"
 {
 
     ApplicationArea = All;
-    Caption = 'Container Content';
+    Caption = 'Container Contents';
     PageType = List;
     SourceTable = "AZBSA Container Content";
     UsageCategory = Lists;
@@ -104,22 +104,22 @@ page 89003 "AZBSA Container Content"
     var
         OriginalRequestObject: Codeunit "AZBSA Request Object";
 
-    procedure AddEntry(BlobStorageContent: Record "AZBSA Container Content")
+    procedure AddEntry(ContainerContent: Record "AZBSA Container Content")
     begin
-        Rec.TransferFields(BlobStorageContent);
+        Rec.TransferFields(ContainerContent);
         Rec.Insert();
     end;
 
-    procedure InitializeFromTempRec(var BlobStorageContent: Record "AZBSA Container Content")
+    procedure InitializeFromTempRec(var ContainerContent: Record "AZBSA Container Content")
     begin
-        if not BlobStorageContent.FindSet(false, false) then
+        if not ContainerContent.FindSet(false, false) then
             exit;
 
-        BlobStorageContent.GetRequestObject(OriginalRequestObject);
+        ContainerContent.GetRequestObject(OriginalRequestObject);
         repeat
-            BlobStorageContent.CalcFields("XML Value");
-            Rec.TransferFields(BlobStorageContent);
+            ContainerContent.CalcFields("XML Value");
+            Rec.TransferFields(ContainerContent);
             Rec.Insert();
-        until BlobStorageContent.Next() = 0;
+        until ContainerContent.Next() = 0;
     end;
 }
