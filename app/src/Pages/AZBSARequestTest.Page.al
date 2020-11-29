@@ -7,7 +7,7 @@ page 89004 "AZBSA Request Test"
 {
 
     ApplicationArea = All;
-    Caption = 'Request Test';
+    Caption = 'Azure Blob Storage Request Test Page';
     PageType = List;
     SourceTable = Integer;
     SourceTableTemporary = true;
