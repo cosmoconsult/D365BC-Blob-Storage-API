@@ -205,9 +205,11 @@ Append Block | Append blobs only |  |
 ## To-Do List
 
 These topics are currently on the to-do list:
-
-- Make "Request Test"-page more robust
-- Add handling for optional Request Headers
-- Extend handling for optional URI parameters
+- ~~Create "**Request Test**"-page (draft)~~
+- ~~Add handling for optional **URI Parameters** (draft)~~
+- ~~Add handling for optional **Request Headers** (draft)~~
+- Make "**Request Test**"-page more robust
+- Extend handling for optional **URI parameters**
+- Extend handling for optional **Request Headers**
 - Reproduce further API functions
-- Create better documentation
+- Create better documentation (Wiki?)
