@@ -162,6 +162,11 @@ codeunit 89001 "AZBSA Request Object"
         OptionalHeaderValues.Add("Key", "Value");
     end;
 
+    procedure AddOptionalHeader(NewReqHeaders: Dictionary of [Text, Text])
+    begin
+        OptionalHeaderValues := NewReqHeaders;
+    end;
+
     procedure SetLeaseIdHeader("Value": Text)
     begin
         AddOptionalHeader('x-ms-lease-id', "Value");
