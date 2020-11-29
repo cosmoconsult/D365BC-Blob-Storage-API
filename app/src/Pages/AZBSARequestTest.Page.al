@@ -7,7 +7,7 @@ page 89004 "AZBSA Request Test"
 {
 
     ApplicationArea = All;
-    Caption = 'Request Test';
+    Caption = 'Azure Blob Storage Request Test Page';
     PageType = List;
     SourceTable = Integer;
     SourceTableTemporary = true;
@@ -56,6 +56,13 @@ page 89004 "AZBSA Request Test"
             }
             group(Result)
             {
+                field(GeneratedURI; GeneratedURI)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Generated URI';
+                    ToolTip = 'XXX';
+                    Editable = false;
+                }
                 field(ResultText; ResultText)
                 {
                     ApplicationArea = All;
@@ -71,6 +78,11 @@ page 89004 "AZBSA Request Test"
                 }
             }
             part(UriParams; "AZBSA Req. Test URI Params")
+            {
+                ApplicationArea = All;
+                Editable = true;
+            }
+            part(ReqHeader; "AZBSA Req. Test Headers")
             {
                 ApplicationArea = All;
                 Editable = true;
@@ -96,16 +108,20 @@ page 89004 "AZBSA Request Test"
                     API: Codeunit "AZBSA Blob Storage API";
                     RequestObject: Codeunit "AZBSA Request Object";
                     OptionalUriParameters: Dictionary of [Text, Text];
+                    OptionalReqHeaders: Dictionary of [Text, Text];
                 begin
                     CurrPage.UriParams.Page.GetRecordAsDictionairy(OptionalUriParameters);
+                    CurrPage.ReqHeader.Page.GetRecordAsDictionairy(OptionalReqHeaders);
                     RequestObject.InitializeRequest(BlobStorageConn."Storage Account Name", ContainerName, BlobName);
                     RequestObject.InitializeAuthorization(BlobStorageConn."Authorization Type", BlobStorageConn.Secret);
                     RequestObject.AddOptionalUriParameter(OptionalUriParameters);
+                    RequestObject.AddOptionalHeader(OptionalReqHeaders);
 
                     case APIAction of
                         APIAction::"List Containers":
                             API.ListContainers(RequestObject, Container, false);
                     end;
+                    GeneratedURI := RequestObject.ConstructUri();
                     ResultText := RequestObject.GetHttpResponseAsText();
                 end;
             }
@@ -117,4 +133,5 @@ page 89004 "AZBSA Request Test"
         ContainerName: Text;
         BlobName: Text;
         ResultText: Text;
+        GeneratedURI: Text;
 }

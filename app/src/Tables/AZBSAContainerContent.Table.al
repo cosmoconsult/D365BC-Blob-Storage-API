@@ -7,8 +7,8 @@ table 89002 "AZBSA Container Content"
 {
     DataClassification = CustomerContent;
     TableType = Temporary;
-    LookupPageId = "AZBSA Container Content";
-    DrillDownPageId = "AZBSA Container Content";
+    LookupPageId = "AZBSA Container Contents";
+    DrillDownPageId = "AZBSA Container Contents";
 
     fields
     {

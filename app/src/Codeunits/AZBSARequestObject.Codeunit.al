@@ -21,7 +21,7 @@ codeunit 89001 "AZBSA Request Object"
         HeaderValues: Dictionary of [Text, Text];
         OptionalHeaderValues: Dictionary of [Text, Text];
         OptionalUriParameters: Dictionary of [Text, Text];
-        KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
+        //KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
         Response: HttpResponseMessage;
 
     // #region Initialize Requests
@@ -162,6 +162,82 @@ codeunit 89001 "AZBSA Request Object"
         OptionalHeaderValues.Add("Key", "Value");
     end;
 
+    procedure AddOptionalHeader(NewReqHeaders: Dictionary of [Text, Text])
+    begin
+        OptionalHeaderValues := NewReqHeaders;
+    end;
+
+    procedure SetLeaseIdHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-lease-id', "Value");
+    end;
+
+    procedure SetLeaseActionHeader("Value": Text)
+    begin
+        // TODO: Check if "Value" should be an option or enum
+        if not ("Value" in ['acquire', 'renew', 'change', 'break']) then
+            Error('Not allowed value');
+        AddOptionalHeader('x-ms-lease-action', "Value");
+    end;
+
+    procedure SetLeaseBreakPeriodHeader("Value": Integer)
+    var
+        LeaseAction: Text;
+    begin
+        if not OptionalHeaderValues.Get('x-ms-lease-action', LeaseAction) then
+            Error('You need to specify the "x-ms-lease-action"-Header to use this');
+        if LeaseAction <> 'break' then
+            Error('"x-ms-lease-break-period" can only be set if "x-ms-lease-action" is "break"');
+        AddOptionalHeader('x-ms-lease-break-period', Format("Value"));
+    end;
+
+    procedure SetLeaseDurationHeader("Value": Integer)
+    var
+        LeaseAction: Text;
+    begin
+        if not OptionalHeaderValues.Get('x-ms-lease-action', LeaseAction) then
+            Error('You need to specify the "x-ms-lease-action"-Header to use this');
+        if LeaseAction <> 'acquire' then
+            Error('"x-ms-lease-duration" can only be set if "x-ms-lease-action" is "acquire"');
+        AddOptionalHeader('x-ms-lease-duration', Format("Value"));
+    end;
+
+    procedure SetProposedLeaseIdHeader("Value": Text)
+    var
+        LeaseAction: Text;
+    begin
+        if not OptionalHeaderValues.Get('x-ms-lease-action', LeaseAction) then
+            Error('You need to specify the "x-ms-lease-action"-Header to use this');
+        if not (LeaseAction in ['acquire', 'change']) then
+            Error('"x-ms-proposed-lease-id" can only be set if "x-ms-lease-action" is "acquire" or "change"');
+        AddOptionalHeader('x-ms-proposed-lease-id', "Value");
+    end;
+
+    procedure SetOriginHeader("Value": Text)
+    begin
+        AddOptionalHeader('Origin', "Value");
+    end;
+
+    procedure SetClientRequestIdHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-client-request-id', "Value");
+    end;
+
+    procedure SetBlobPublicAccessHeader("Value": Text)
+    begin
+        // TODO: Check if "Value" should be an option or enum
+        if not ("Value" in ['container', 'blob']) then
+            Error('Not allowed value');
+        AddOptionalHeader('x-ms-blob-public-access', "Value");
+    end;
+
+    procedure SetMetadataNameValueHeader("Name": Text; "Value": Text)
+    var
+        MetaKeyValuePairLbl: Label 'x-ms-meta-%1', Comment = '%1 = Key';
+    begin
+        AddOptionalHeader(StrSubstNo(MetaKeyValuePairLbl, "Name"), "Value");
+    end;
+
     procedure AddHeader(var Headers: HttpHeaders; "Key": Text; "Value": Text)
     begin
         if HeaderValues.ContainsKey("Key") then
@@ -175,6 +251,19 @@ codeunit 89001 "AZBSA Request Object"
     procedure ClearHeaders()
     begin
         Clear(HeaderValues);
+    end;
+
+    procedure GetCombinedHeadersDictionary(var NewHeaders: Dictionary of [Text, Text])
+    var
+        HeaderKey: Text;
+    begin
+        Clear(NewHeaders);
+        foreach HeaderKey in HeaderValues.Keys do
+            NewHeaders.Add(HeaderKey, HeaderValues.Get(HeaderKey));
+
+        foreach HeaderKey in OptionalHeaderValues.Keys do
+            if not NewHeaders.ContainsKey(HeaderKey) then
+                NewHeaders.Add(HeaderKey, OptionalHeaderValues.Get(HeaderKey));
     end;
 
     // #region Optional Uri Parameters
@@ -253,242 +342,22 @@ codeunit 89001 "AZBSA Request Object"
     // #region Uri generation
     procedure ConstructUri(): Text
     var
-        FormatHelper: Codeunit "AZBSA Format Helper";
-        AuthorizationType: Enum "AZBSA Authorization Type";
-        ConstructedUrl: Text;
-        BlobStorageBaseUrlLbl: Label 'https://%1.blob.core.windows.net', Comment = '%1 = Storage Account Name';
-        SingleContainerLbl: Label '%1/%2?restype=container%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = List-extension (if applicable)';
-        ListContainerExtensionLbl: Label '&comp=list';
-        SingleBlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
+        URIHelepr: Codeunit "AZBSA URI Helper";
     begin
-        TestConstructUrlParameter();
-
-        ConstructedUrl := StrSubstNo(BlobStorageBaseUrlLbl, StorageAccountName);
-        case Operation of
-            Operation::ListContainers:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, '', ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=container&comp=list
-            Operation::DeleteContainer:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/?restype=container&comp=list
-            Operation::ListContainerContents:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container&comp=list
-            Operation::PutContainer:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
-            Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob:
-                ConstructedUrl := StrSubstNo(SingleBlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>/<BlobName>
-        end;
-
-        AddOptionalUriParameters(ConstructedUrl);
-
-        // If SaS-Token is used for authentication, append it to the URI
-        if AuthType = AuthorizationType::SasToken then
-            FormatHelper.AppendToUri(ConstructedUrl, '', Secret);
-        exit(ConstructedUrl);
-    end;
-
-    local procedure AddOptionalUriParameters(var Uri: Text)
-    var
-        FormatHelper: Codeunit "AZBSA Format Helper";
-        ParameterIdentifier: Text;
-        ParameterValue: Text;
-    begin
-        if OptionalUriParameters.Count = 0 then
-            exit;
-
-        foreach ParameterIdentifier in OptionalUriParameters.Keys do begin
-            OptionalUriParameters.Get(ParameterIdentifier, ParameterValue);
-            FormatHelper.AppendToUri(Uri, ParameterIdentifier, ParameterValue);
-        end;
-    end;
-
-    local procedure TestConstructUrlParameter()
-    var
-        AuthorizationType: Enum "AZBSA Authorization Type";
-        ValueCanNotBeEmptyErr: Label '%1 can not be empty', Comment = '%1 = Variable Name';
-        StorageAccountNameLbl: Label 'Storage Account Name';
-        SasTokenLbl: Label 'Shared Access Signature (Token)';
-        AccesKeyLbl: Label 'Access Key';
-        ContainerNameLbl: Label 'Container Name';
-        BlobNameLbl: Label 'Blob Name';
-        OperationLbl: Label 'Operation';
-    begin
-        if StorageAccountName = '' then
-            Error(ValueCanNotBeEmptyErr, StorageAccountNameLbl);
-
-        case AuthType of
-            AuthorizationType::SasToken:
-                if Secret = '' then
-                    Error(ValueCanNotBeEmptyErr, SasTokenLbl);
-            AuthorizationType::SharedKey:
-                if Secret = '' then
-                    Error(ValueCanNotBeEmptyErr, AccesKeyLbl);
-        end;
-        if Operation = Operation::" " then
-            Error(ValueCanNotBeEmptyErr, OperationLbl);
-
-        case true of
-            Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob]:
-                begin
-                    if ContainerName = '' then
-                        Error(ValueCanNotBeEmptyErr, ContainerNameLbl);
-                    if BlobName = '' then
-                        Error(ValueCanNotBeEmptyErr, BlobNameLbl);
-                end;
-        end;
+        URIHelepr.SetOptionalUriParameter(OptionalUriParameters);
+        exit(URIHelepr.ConstructUri(StorageAccountName, ContainerName, BlobName, Operation, AuthType, Secret));
     end;
     // #endregion Uri generation
 
     // #region Shared Key Signature Generation
 
     procedure GetSharedKeySignature(HttpRequestType: Enum "Http Request Type"): Text
-    begin
-        exit(GetSharedKeySignature(HttpRequestType, StorageAccountName, ConstructUri()));
-    end;
-
-    procedure GetSharedKeySignature(HttpRequestType: Enum "Http Request Type"; StorageAccount: Text; UriString: Text): Text
     var
-        StringToSign: Text;
-        Signature: Text;
-        SignaturePlaceHolderLbl: Label 'SharedKey %1:%2', Comment = '%1 = Account Name; %2 = Calculated Signature';
+        ReqAuthAccessKey: Codeunit "AZBSA Req. Auth. Access Key";
     begin
-        if Secret = '' then
-            Error('This should not happen');
-
-        StringToSign := CreateStringToSign(HttpRequestType, StorageAccount, UriString);
-        Signature := GetAccessKeyHashCode(StringToSign, Secret);
-        exit(StrSubstNo(SignaturePlaceHolderLbl, StorageAccount, Signature));
-    end;
-
-    local procedure CreateStringToSign(HttpRequestType: Enum "Http Request Type"; StorageAccount: Text; UriString: Text): Text
-    var
-        FormatHelper: Codeunit "AZBSA Format Helper";
-        StringToSign: Text;
-    begin
-        // TODO: Add Handling-structure for different API-versions
-        StringToSign += Format(HttpRequestType) + FormatHelper.GetNewLineCharacter();
-        StringToSign += GetHeaderValueOrEmpty('Content-Encoding') + FormatHelper.GetNewLineCharacter(); // Content-Encoding
-        StringToSign += GetHeaderValueOrEmpty('Content-Language') + FormatHelper.GetNewLineCharacter(); // Content-Language
-        StringToSign += GetHeaderValueOrEmpty('Content-Length') + FormatHelper.GetNewLineCharacter(); // Content-Length
-        StringToSign += GetHeaderValueOrEmpty('Content-MD5') + FormatHelper.GetNewLineCharacter(); // Content-MD5
-        StringToSign += GetHeaderValueOrEmpty('Content-Type') + FormatHelper.GetNewLineCharacter(); // Content-Type
-        StringToSign += GetHeaderValueOrEmpty('Date') + FormatHelper.GetNewLineCharacter(); // Date
-        StringToSign += GetHeaderValueOrEmpty('If-Modified-Since') + FormatHelper.GetNewLineCharacter(); // If-Modified-Since
-        StringToSign += GetHeaderValueOrEmpty('If-Match') + FormatHelper.GetNewLineCharacter(); // If-Match
-        StringToSign += GetHeaderValueOrEmpty('If-None-Match') + FormatHelper.GetNewLineCharacter(); // If-None-Match
-        StringToSign += GetHeaderValueOrEmpty('If-Unmodified-Since') + FormatHelper.GetNewLineCharacter(); // If-Unmodified-Since
-        StringToSign += GetHeaderValueOrEmpty('Range') + FormatHelper.GetNewLineCharacter(); // Range        
-        StringToSign += GetCanonicalizedHeaders(HeaderValues) + FormatHelper.GetNewLineCharacter();
-        StringToSign += GetCanonicalizedResource(StorageAccount, UriString);
-        exit(StringToSign);
-    end;
-
-    local procedure GetHeaderValueOrEmpty(HeaderKey: Text): Text
-    var
-        ReturnValue: Text;
-    begin
-        if not HeaderValues.Get(HeaderKey, ReturnValue) then
-            exit('');
-        exit(ReturnValue);
-    end;
-
-    local procedure GetCanonicalizedHeaders(Headers: Dictionary of [Text, Text]): Text
-    var
-        FormatHelper: Codeunit "AZBSA Format Helper";
-        HeaderKey: Text;
-        CanonicalizedHeaders: Text;
-    begin
-        foreach HeaderKey in Headers.Keys do
-            if (HeaderKey.ToLower().StartsWith('x-ms-')) then begin
-                if CanonicalizedHeaders <> '' then
-                    CanonicalizedHeaders += FormatHelper.GetNewLineCharacter();
-                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey, Headers.Get(HeaderKey))
-            end;
-        exit(CanonicalizedHeaders);
-    end;
-
-    local procedure GetCanonicalizedResource(StorageAccount: Text; UriString: Text): Text
-    var
-        SortTable: Record "AZBSA Temp. Sort Table";
-        Uri: Codeunit Uri;
-        UriBuider: Codeunit "Uri Builder";
-        FormatHelper: Codeunit "AZBSA Format Helper";
-        QueryString: Text;
-        Segments: List of [Text];
-        Segment: Text;
-        StringBuilderResource: TextBuilder;
-        StringBuilderQuery: TextBuilder;
-        StringBuilderCanonicalizedResource: TextBuilder;
-    begin
-        Uri.Init(UriString);
-        Uri.GetSegments(Segments);
-
-        UriBuider.Init(UriString);
-        QueryString := UriBuider.GetQuery();
-
-        StringBuilderResource.Append('/');
-        StringBuilderResource.Append(StorageAccount);
-        foreach Segment in Segments do
-            StringBuilderResource.Append(Segment);
-
-        if QueryString <> '' then begin
-            GetQuerySegments(QueryString, Segments);
-            // Need to use temp. Table to sort query alphabetically
-            // According to documentation it should be lexicographically, but I don't know how :(
-            // see: https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key#constructing-the-canonicalized-headers-string
-            GetSortedQueryValues(Segments, SortTable);
-            if SortTable.FindSet(false, false) then
-                repeat
-                    StringBuilderQuery.Append(FormatHelper.GetNewLineCharacter());
-                    StringBuilderQuery.Append(StrSubstNo(KeyValuePairLbl, SortTable."Key", SortTable."Value"));
-                until SortTable.Next() = 0;
-        end;
-        StringBuilderCanonicalizedResource.Append(StringBuilderResource.ToText());
-        StringBuilderCanonicalizedResource.Append(StringBuilderQuery.ToText());
-        exit(StringBuilderCanonicalizedResource.ToText());
-    end;
-
-    local procedure GetQuerySegments(QueryString: Text; var Segments: List of [Text])
-    begin
-        Clear(Segments);
-        if QueryString.StartsWith('?') then
-            QueryString := CopyStr(QueryString, 2);
-        Segments := QueryString.Split('&');
-    end;
-
-    local procedure GetKeyValueFromQueryParameter(QueryString: Text; var "Key": Text; var "Value": Text)
-    var
-        Split: List of [Text];
-    begin
-        Split := QueryString.Split('=');
-        if Split.Count <> 2 then
-            Error('This should not happen');
-        "Key" := Split.Get(1);
-        "Value" := Split.Get(2);
-    end;
-
-    local procedure GetSortedQueryValues(Segments: List of [Text]; var TempSortTable: Record "AZBSA Temp. Sort Table")
-    var
-        Segment: Text;
-        "Key": Text;
-        "Value": Text;
-    begin
-        TempSortTable.Reset();
-        TempSortTable.DeleteAll();
-        foreach Segment in Segments do begin
-            GetKeyValueFromQueryParameter(Segment, "Key", "Value");
-            TempSortTable."Key" := CopyStr("Key", 1, 250);
-            TempSortTable."Value" := CopyStr("Value", 1, 250);
-            TempSortTable.Insert();
-        end;
-        TempSortTable.SetCurrentKey("Key");
-        TempSortTable.Ascending(true);
-    end;
-
-    local procedure GetAccessKeyHashCode(StringToSign: Text; AccessKey: Text): Text;
-    var
-        CryptographyMgmt: Codeunit "Cryptography Management";
-        HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512;
-    begin
-        exit(CryptographyMgmt.GenerateBase64KeyedHashAsBase64String(StringToSign, AccessKey, HashAlgorithmType::HMACSHA256));
+        ReqAuthAccessKey.SetHeaderValues(HeaderValues);
+        ReqAuthAccessKey.SetOptionalHeaderValues(OptionalHeaderValues);
+        exit(ReqAuthAccessKey.GetSharedKeySignature(HttpRequestType, StorageAccountName, ConstructUri(), Secret));
     end;
     // #endregion Shared Key Signature Generation
 }
