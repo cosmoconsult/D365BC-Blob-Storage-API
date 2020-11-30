@@ -5,6 +5,8 @@
 
 codeunit 89005 "AZBSA Req. Auth. Access Key"
 {
+    Access = Internal;
+
     trigger OnRun()
     begin
 
@@ -58,7 +60,7 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
         StringToSign += GetHeaderValueOrEmpty('If-None-Match') + FormatHelper.GetNewLineCharacter(); // If-None-Match
         StringToSign += GetHeaderValueOrEmpty('If-Unmodified-Since') + FormatHelper.GetNewLineCharacter(); // If-Unmodified-Since
         StringToSign += GetHeaderValueOrEmpty('Range') + FormatHelper.GetNewLineCharacter(); // Range        
-        StringToSign += GetCanonicalizedHeaders(HeaderValues, OptionalHeaderValues) + FormatHelper.GetNewLineCharacter();
+        StringToSign += GetCanonicalizedHeaders(HeaderValues) + FormatHelper.GetNewLineCharacter();
         StringToSign += GetCanonicalizedResource(StorageAccount, UriString);
         exit(StringToSign);
     end;
@@ -72,37 +74,20 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
         exit(ReturnValue);
     end;
 
-    local procedure GetCanonicalizedHeaders(Headers: Dictionary of [Text, Text]; OptionalHeaders: Dictionary of [Text, Text]): Text
+    local procedure GetCanonicalizedHeaders(Headers: Dictionary of [Text, Text]): Text
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
-        CombinedHeaders: Dictionary of [Text, Text];
         HeaderKey: Text;
         CanonicalizedHeaders: Text;
     begin
-        GetCombinedHeadersDictionary(Headers, OptionalHeaders, CombinedHeaders);
-        foreach HeaderKey in CombinedHeaders.Keys do
+        // "Headers" needs to be a sorted dictionary
+        foreach HeaderKey in Headers.Keys do
             if (HeaderKey.ToLower().StartsWith('x-ms-')) then begin
                 if CanonicalizedHeaders <> '' then
                     CanonicalizedHeaders += FormatHelper.GetNewLineCharacter();
-                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey.ToLower(), CombinedHeaders.Get(HeaderKey))
+                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey.ToLower(), Headers.Get(HeaderKey))
             end;
         exit(CanonicalizedHeaders);
-    end;
-
-    local procedure GetCombinedHeadersDictionary(Headers: Dictionary of [Text, Text]; OptionalHeaders: Dictionary of [Text, Text]; var NewHeaders: Dictionary of [Text, Text])
-    var
-        HeaderKey: Text;
-    begin
-        Clear(NewHeaders);
-        foreach HeaderKey in Headers.Keys do
-            if (HeaderKey.ToLower().StartsWith('x-ms-')) then
-                NewHeaders.Add(HeaderKey, Headers.Get(HeaderKey));
-
-        foreach HeaderKey in OptionalHeaders.Keys do
-            if (HeaderKey.ToLower().StartsWith('x-ms-')) then
-                if not NewHeaders.ContainsKey(HeaderKey) then
-                    NewHeaders.Add(HeaderKey, OptionalHeaders.Get(HeaderKey));
-        // TODO: Check if additional sorting is necessary
     end;
 
     local procedure GetCanonicalizedResource(StorageAccount: Text; UriString: Text): Text
