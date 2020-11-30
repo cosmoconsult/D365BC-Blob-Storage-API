@@ -23,6 +23,7 @@ codeunit 89001 "AZBSA Request Object"
         OptionalUriParameters: Dictionary of [Text, Text];
         //KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
         Response: HttpResponseMessage;
+        ResponseIsSet: Boolean;
 
     // #region Initialize Requests
     procedure InitializeRequest(NewStorageAccountName: Text)
@@ -129,6 +130,7 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetHttpResponse(NewResponse: HttpResponseMessage)
     begin
         Response := NewResponse;
+        ResponseIsSet := true;
     end;
 
     procedure GetHttpResponse(var NewResponse: HttpResponseMessage)
@@ -142,6 +144,25 @@ codeunit 89001 "AZBSA Request Object"
     begin
         Response.Content.ReadAs(ResponseText);
         exit(ResponseText)
+    end;
+
+    procedure GetHttpResponseHeaders(var NewResponseHeaders: HttpHeaders)
+    begin
+        NewResponseHeaders := Response.Headers;
+    end;
+
+    procedure GetHeaderValueFromResponseHeaders(HeaderName: Text): Text
+    var
+        Headers: HttpHeaders;
+        Values: array[100] of Text;
+    begin
+        if not ResponseIsSet then
+            Error('HttpResponseMessage is not set');
+
+        Headers := Response.Headers;
+        if not Headers.GetValues(HeaderName, Values) then
+            exit('');
+        exit(Values[1]);
     end;
 
     procedure GetHttpResponseStatusCode(): Integer
@@ -175,7 +196,7 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetLeaseActionHeader("Value": Text)
     begin
         // TODO: Check if "Value" should be an option or enum
-        if not ("Value" in ['acquire', 'renew', 'change', 'break']) then
+        if not ("Value" in ['acquire', 'renew', 'change', 'release', 'break']) then
             Error('Not allowed value');
         AddOptionalHeader('x-ms-lease-action', "Value");
     end;
@@ -238,6 +259,18 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader(StrSubstNo(MetaKeyValuePairLbl, "Name"), "Value");
     end;
 
+    procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
+    begin
+        HeaderValues := NewHeaderValues;
+    end;
+
+    procedure AddHeader("Key": Text; "Value": Text)
+    begin
+        if HeaderValues.ContainsKey("Key") then
+            HeaderValues.Remove("Key");
+        HeaderValues.Add("Key", "Value");
+    end;
+
     procedure AddHeader(var Headers: HttpHeaders; "Key": Text; "Value": Text)
     begin
         if HeaderValues.ContainsKey("Key") then
@@ -264,6 +297,35 @@ codeunit 89001 "AZBSA Request Object"
         foreach HeaderKey in OptionalHeaderValues.Keys do
             if not NewHeaders.ContainsKey(HeaderKey) then
                 NewHeaders.Add(HeaderKey, OptionalHeaderValues.Get(HeaderKey));
+    end;
+
+    procedure GetSortedHeadersDictionary(var NewHeaders: Dictionary of [Text, Text])
+    var
+        SortTable: Record "AZBSA Temp. Sort Table";
+        HeaderKey: Text;
+    begin
+        Clear(NewHeaders);
+        SortTable.Reset();
+        SortTable.DeleteAll();
+        foreach HeaderKey in HeaderValues.Keys do begin
+            SortTable."Key" := CopyStr(HeaderKey, 1, 250);
+            SortTable."Value" := CopyStr(HeaderValues.Get(HeaderKey), 1, 250);
+            SortTable.Insert();
+        end;
+        foreach HeaderKey in OptionalHeaderValues.Keys do begin
+            SortTable."Key" := CopyStr(HeaderKey, 1, 250);
+            SortTable."Value" := CopyStr(OptionalHeaderValues.Get(HeaderKey), 1, 250);
+            if SortTable.Insert() then
+                ;
+        end;
+        SortTable.SetCurrentKey("Key");
+        SortTable.Ascending(true);
+
+        if not SortTable.FindSet() then
+            exit;
+        repeat
+            NewHeaders.Add(SortTable."Key", SortTable.Value);
+        until SortTable.Next() = 0;
     end;
 
     // #region Optional Uri Parameters
@@ -356,7 +418,6 @@ codeunit 89001 "AZBSA Request Object"
         ReqAuthAccessKey: Codeunit "AZBSA Req. Auth. Access Key";
     begin
         ReqAuthAccessKey.SetHeaderValues(HeaderValues);
-        ReqAuthAccessKey.SetOptionalHeaderValues(OptionalHeaderValues);
         exit(ReqAuthAccessKey.GetSharedKeySignature(HttpRequestType, StorageAccountName, ConstructUri(), Secret));
     end;
     // #endregion Shared Key Signature Generation

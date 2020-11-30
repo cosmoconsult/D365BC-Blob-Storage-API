@@ -11,7 +11,7 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
     SourceTable = "AZBSA Blob Storage Connection";
     UsageCategory = Administration;
     ApplicationArea = All;
-    PromotedActionCategories = 'New,Process,Reports,View Container,Create Container,Delete Container,Upload,Download,Delete Blob';
+    PromotedActionCategories = 'New,Process,Reports,View Container,Create Container,Delete Container,Upload,Download,Delete Blob,Lease';
 
     layout
     {
@@ -201,6 +201,62 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                     trigger OnAction();
                     begin
                         Rec.DeleteTargetContainer();
+                    end;
+                }
+            }
+            group(Lease)
+            {
+                Caption = 'Lease...';
+
+                action(LeaseContainer)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Acquire Lease Container';
+                    Image = LaunchWeb;
+                    ToolTip = 'Acquires a lease for a container';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category10;
+
+                    trigger OnAction()
+                    begin
+                        Rec.ContainerLeaseAcquireSource();
+                    end;
+                }
+
+                action(ReleaseContainer)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Release Lease Container';
+                    Image = LaunchWeb;
+                    ToolTip = 'Release a lease for a container';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category10;
+
+                    trigger OnAction()
+                    var
+                        NullGuid: Guid;
+                    begin
+                        Rec.ContainerLeaseReleaseSource(NullGuid);
+                    end;
+                }
+
+                action(RenewLeaseContainer)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Renew Lease Container';
+                    Image = LaunchWeb;
+                    ToolTip = 'Renew a lease for a container';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category10;
+
+                    trigger OnAction()
+                    var
+                        NullGuid: Guid;
+                    begin
+                        Rec.ContainerLeaseRenewSource(NullGuid);
                     end;
                 }
             }

@@ -27,6 +27,7 @@ codeunit 89006 "AZBSA URI Helper"
         BlobStorageBaseUrlLbl: Label 'https://%1.blob.core.windows.net', Comment = '%1 = Storage Account Name';
         SingleContainerLbl: Label '%1/%2?restype=container%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = List-extension (if applicable)';
         ListContainerExtensionLbl: Label '&comp=list';
+        LeaseContainerExtensionLbl: Label '&comp=lease';
         SingleBlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
     begin
         TestConstructUrlParameter(StorageAccountName, ContainerName, BlobName, Operation, AuthType, Secret);
@@ -43,6 +44,10 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
             Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob:
                 ConstructedUrl := StrSubstNo(SingleBlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>/<BlobName>
+            Operation::LeaseContainer:
+                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, LeaseContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=lease
+            else
+                Error('Operation needs to be defined');
         end;
 
         AddOptionalUriParameters(ConstructedUrl);

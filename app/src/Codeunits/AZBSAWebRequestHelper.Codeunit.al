@@ -209,36 +209,27 @@ codeunit 89004 "AZBSA Web Request Helper"
 
     local procedure HandleHeaders(HttpRequestType: Enum "Http Request Type"; var Client: HttpClient; var RequestObject: Codeunit "AZBSA Request Object")
     var
-        Headers: HttpHeaders;
-    begin
-        Headers := Client.DefaultRequestHeaders;
-        HandleAuthorizationHeaders(HttpRequestType, RequestObject, Headers);
-        HandleOptionalHeaders(RequestObject, Headers);
-    end;
-
-    local procedure HandleAuthorizationHeaders(HttpRequestType: Enum "Http Request Type"; var RequestObject: Codeunit "AZBSA Request Object"; var Headers: HttpHeaders)
-    var
         FormatHelper: Codeunit "AZBSA Format Helper";
         UsedDateTimeText: Text;
+        Headers: HttpHeaders;
+        HeadersDictionary: Dictionary of [Text, Text];
+        HeaderKey: Text;
         AuthType: enum "AZBSA Authorization Type";
     begin
-        if RequestObject.GetAuthorizationType() = AuthType::SasToken then
-            exit;
+        Headers := Client.DefaultRequestHeaders;
+        // Add to all requests >>
         UsedDateTimeText := FormatHelper.GetRfc1123DateTime();
-        RequestObject.AddHeader(Headers, 'x-ms-date', UsedDateTimeText);
-        RequestObject.AddHeader(Headers, 'x-ms-version', Format(RequestObject.GetApiVersion()));
-        RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetSharedKeySignature(HttpRequestType));
-    end;
-
-    local procedure HandleOptionalHeaders(var RequestObject: Codeunit "AZBSA Request Object"; var Headers: HttpHeaders)
-    var
-        CombinedHeaders: Dictionary of [Text, Text];
-        HeaderKey: Text;
-    begin
-        RequestObject.GetCombinedHeadersDictionary(CombinedHeaders);
-        foreach HeaderKey in CombinedHeaders.Keys do
-            if not Headers.Contains(HeaderKey) then
-                RequestObject.AddHeader(Headers, HeaderKey, CombinedHeaders.Get(HeaderKey));
+        RequestObject.AddHeader('x-ms-date', UsedDateTimeText);
+        RequestObject.AddHeader('x-ms-version', Format(RequestObject.GetApiVersion()));
+        // Add to all requests <<
+        RequestObject.GetSortedHeadersDictionary(HeadersDictionary);
+        RequestObject.SetHeaderValues(HeadersDictionary);
+        foreach HeaderKey in HeadersDictionary.Keys do
+            RequestObject.AddHeader(Headers, HeaderKey, HeadersDictionary.Get(HeaderKey));
+        case RequestObject.GetAuthorizationType() of
+            AuthType::SharedKey:
+                RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetSharedKeySignature(HttpRequestType));
+        end;
     end;
     // #endregion
 
