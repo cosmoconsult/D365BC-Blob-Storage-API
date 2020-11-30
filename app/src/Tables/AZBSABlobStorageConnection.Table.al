@@ -204,4 +204,45 @@ table 89000 "AZBSA Blob Storage Connection"
         RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
         API.DeleteBlobFromContainerUI(RequestObject);
     end;
+
+    procedure ContainerLeaseAcquireSource()
+    begin
+        ContainerLeaseAcquire(Rec."Source Container Name");
+    end;
+
+    local procedure ContainerLeaseAcquire(ContainerName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        API.ContainerLeaseAcquire(RequestObject, 60);
+        GlobalLeaseId := RequestObject.GetHeaderValueFromResponseHeaders('x-ms-lease-id');
+        Message('Saved LeaseId to Global variable');
+    end;
+
+    procedure ContainerLeaseReleaseSource(LeaseID: Guid)
+    begin
+        if IsNullGuid(LeaseID) then
+            ContainerLeaseRelease(Rec."Source Container Name", GlobalLeaseId)
+        else
+            ContainerLeaseRelease(Rec."Source Container Name", LeaseID);
+    end;
+
+    local procedure ContainerLeaseRelease(ContainerName: Text; LeaseID: Guid)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        if IsNullGuid(LeaseID) then
+            Error('You need to call "Acuire Lease" first (global variable "LeaseId" is not set)');
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        API.ContainerLeaseRelease(RequestObject, LeaseID);
+        Clear(GlobalLeaseId);
+    end;
+
+    var
+        GlobalLeaseId: Guid;
 }

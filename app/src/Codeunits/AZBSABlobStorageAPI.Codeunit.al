@@ -318,4 +318,55 @@ codeunit 89000 "AZBSA Blob Storage API"
         RequestObject.SetOperation(Operation::DeleteBlob);
         WebRequestHelper.DeleteOperation(RequestObject, StrSubstNo(DeleteBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
     end;
+
+    // #region (PUT) Container Acquire Lease
+    procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        ProposedLeaseId: Guid;
+    begin
+        ContainerLeaseAcquire(RequestObject, -1, ProposedLeaseId); // Infinite duration, null Guid
+    end;
+
+    procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object"; DurationSeconds: Integer)
+    var
+        ProposedLeaseId: Guid;
+    begin
+        ContainerLeaseAcquire(RequestObject, DurationSeconds, ProposedLeaseId); // Custom duration, new Guid
+    end;
+
+    procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object"; ProposedLeaseId: Guid)
+    begin
+        ContainerLeaseAcquire(RequestObject, -1, ProposedLeaseId); // Infinite duration, custom Guid
+    end;
+
+    procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object"; DurationSeconds: Integer; ProposedLeaseId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        if ((DurationSeconds > 0) and ((DurationSeconds < 15) or (DurationSeconds > 60))) xor (not (DurationSeconds <> -1)) then
+            Error('Duration can be -1 (for infinite) or between 15 and 60 seconds');
+        RequestObject.SetOperation(Operation::LeaseContainer);
+        RequestObject.SetLeaseActionHeader('acquire');
+        RequestObject.SetLeaseDurationHeader(DurationSeconds);
+        if not IsNullGuid(ProposedLeaseId) then
+            RequestObject.SetProposedLeaseIdHeader(ProposedLeaseId);
+        WebRequestHelper.PutOperation(RequestObject, 'Error trying to acquire lease for container.');
+    end;
+    // #endregion (PUT) Container Acquire Lease
+
+    // #region (PUT) Container Release Lease
+    procedure ContainerLeaseRelease(var RequestObject: Codeunit "AZBSA Request Object"; LeaseId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::LeaseContainer);
+        RequestObject.SetLeaseActionHeader('release');
+        if IsNullGuid(LeaseId) then
+            Error('You need to specify LeaseId (x-ms-lease-id)');
+        RequestObject.SetLeaseIdHeader(LeaseId);
+        WebRequestHelper.PutOperation(RequestObject, 'Error trying to acquire lease for container.');
+    end;
+    // #endregion (PUT) Container Release Lease
 }
