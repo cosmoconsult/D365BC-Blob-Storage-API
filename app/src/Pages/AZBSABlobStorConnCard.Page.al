@@ -241,6 +241,24 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                         Rec.ContainerLeaseReleaseSource(NullGuid);
                     end;
                 }
+
+                action(RenewLeaseContainer)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Renew Lease Container';
+                    Image = LaunchWeb;
+                    ToolTip = 'Renew a lease for a container';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category10;
+
+                    trigger OnAction()
+                    var
+                        NullGuid: Guid;
+                    begin
+                        Rec.ContainerLeaseRenewSource(NullGuid);
+                    end;
+                }
             }
             group(UploadFile)
             {

@@ -320,6 +320,11 @@ codeunit 89000 "AZBSA Blob Storage API"
     end;
 
     // #region (PUT) Container Acquire Lease
+    /// <summary>
+    /// Establishes a lock on a container for delete operations. The lock duration can be 15 to 60 seconds or can be infinite
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/lease-container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
     procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object")
     var
         ProposedLeaseId: Guid;
@@ -327,6 +332,12 @@ codeunit 89000 "AZBSA Blob Storage API"
         ContainerLeaseAcquire(RequestObject, -1, ProposedLeaseId); // Infinite duration, null Guid
     end;
 
+    /// <summary>
+    /// Establishes a lock on a container for delete operations. The lock duration can be 15 to 60 seconds or can be infinite
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/lease-container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="DurationSeconds">Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires</param>
     procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object"; DurationSeconds: Integer)
     var
         ProposedLeaseId: Guid;
@@ -334,11 +345,24 @@ codeunit 89000 "AZBSA Blob Storage API"
         ContainerLeaseAcquire(RequestObject, DurationSeconds, ProposedLeaseId); // Custom duration, new Guid
     end;
 
+    /// <summary>
+    /// Establishes a lock on a container for delete operations. The lock duration can be 15 to 60 seconds or can be infinite
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/lease-container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="ProposedLeaseId">Proposed lease ID, in a GUID string format</param>
     procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object"; ProposedLeaseId: Guid)
     begin
         ContainerLeaseAcquire(RequestObject, -1, ProposedLeaseId); // Infinite duration, custom Guid
     end;
 
+    /// <summary>
+    /// Establishes a lock on a container for delete operations. The lock duration can be 15 to 60 seconds or can be infinite
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/lease-container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="DurationSeconds">Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires</param>
+    /// <param name="ProposedLeaseId">Proposed lease ID, in a GUID string format</param>
     procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object"; DurationSeconds: Integer; ProposedLeaseId: Guid)
     var
         WebRequestHelper: Codeunit "AZBSA Web Request Helper";
@@ -356,6 +380,11 @@ codeunit 89000 "AZBSA Blob Storage API"
     // #endregion (PUT) Container Acquire Lease
 
     // #region (PUT) Container Release Lease
+    /// <summary>
+    /// Releases a lock on a container if it is no longer needed so that another client may immediately acquire a lease against the container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="LeaseId">The Guid for the lease that should be freed</param>
     procedure ContainerLeaseRelease(var RequestObject: Codeunit "AZBSA Request Object"; LeaseId: Guid)
     var
         WebRequestHelper: Codeunit "AZBSA Web Request Helper";
@@ -366,7 +395,71 @@ codeunit 89000 "AZBSA Blob Storage API"
         if IsNullGuid(LeaseId) then
             Error('You need to specify LeaseId (x-ms-lease-id)');
         RequestObject.SetLeaseIdHeader(LeaseId);
-        WebRequestHelper.PutOperation(RequestObject, 'Error trying to acquire lease for container.');
+        WebRequestHelper.PutOperation(RequestObject, 'Error trying to release lease for container.');
     end;
     // #endregion (PUT) Container Release Lease
+
+    // #region (PUT) Container Renew Lease
+    /// <summary>
+    /// Renews a lock on a container to keep it locked again for the same amount of time as before
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="LeaseId">The Guid for the lease that should be renewed</param>
+    procedure ContainerLeaseRenew(var RequestObject: Codeunit "AZBSA Request Object"; LeaseId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::LeaseContainer);
+        RequestObject.SetLeaseActionHeader('renew');
+        if IsNullGuid(LeaseId) then
+            Error('You need to specify LeaseId (x-ms-lease-id)');
+        RequestObject.SetLeaseIdHeader(LeaseId);
+        WebRequestHelper.PutOperation(RequestObject, 'Error trying to renew lease for container.');
+    end;
+    // #endregion (PUT) Container Renew Lease
+
+    // #region (PUT) Container Break Lease
+    /// <summary>
+    /// Breaks a lock on a container but ensures that another client cannot acquire a new lease until the current lease period has expired
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="LeaseId">The Guid for the lease that should be broken</param>
+    procedure ContainerLeaseBreak(var RequestObject: Codeunit "AZBSA Request Object"; LeaseId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::LeaseContainer);
+        RequestObject.SetLeaseActionHeader('break');
+        if IsNullGuid(LeaseId) then
+            Error('You need to specify LeaseId (x-ms-lease-id)');
+        RequestObject.SetLeaseIdHeader(LeaseId);
+        WebRequestHelper.PutOperation(RequestObject, 'Error trying to break lease for container.');
+    end;
+    // #endregion (PUT) Container Break Lease
+
+    // #region (PUT) Container Change Lease
+    /// <summary>
+    /// Changes the lock ID on a container
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="LeaseId">The Guid for the lease that should be changed</param>
+    /// <param name="ProposedLeaseId">The Guid that should be used in future</param>
+    procedure ContainerLeaseChange(var RequestObject: Codeunit "AZBSA Request Object"; LeaseId: Guid; ProposedLeaseId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::LeaseContainer);
+        RequestObject.SetLeaseActionHeader('change');
+        if IsNullGuid(LeaseId) then
+            Error('You need to specify LeaseId (x-ms-lease-id)');
+        if IsNullGuid(ProposedLeaseId) then
+            Error('You need to specify LeaseId (x-ms-proposed-lease-id)');
+        RequestObject.SetLeaseIdHeader(LeaseId);
+        RequestObject.SetProposedLeaseIdHeader(ProposedLeaseId);
+        WebRequestHelper.PutOperation(RequestObject, 'Error trying to break lease for container.');
+    end;
+    // #endregion (PUT) Container Change Lease
 }
