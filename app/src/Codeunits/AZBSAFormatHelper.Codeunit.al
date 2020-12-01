@@ -86,6 +86,14 @@ codeunit 89003 "AZBSA Format Helper"
         // Definition: https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html "14.18 Date"
         MyDateTime := ConvertDateTimeToUtcDateTime(MyDateTime);
         Rfc1123FormatDateTime := GetDateFormatInEnglish(MyDateTime, TargetDateTimeFormatLbl);
+        // Adjust if current day-value is below 10 to add a leading "0"
+        // API is expecting format to be like:
+        //     Tue, 01 Dec 2020 17:05:07 GMT
+        // Previous code would generate it like:
+        //     Tue, 1 Dec 2020 17:05:07 GMT
+        // Since the day is always a 3-letter string followed by a comma and a space we need to add a "0" (zero) on pos 6 in these cases
+        if Date2DMY(DT2Date(MyDateTime), 1) < 10 then
+            Rfc1123FormatDateTime := InsStr(Rfc1123FormatDateTime, '0', 6);
         Rfc1123FormatDateTime := StrSubstNo(Rfc1123FormatLbl, Rfc1123FormatDateTime);
         exit(Rfc1123FormatDateTime);
     end;
