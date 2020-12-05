@@ -463,7 +463,7 @@ codeunit 89000 "AZBSA Blob Storage API"
     var
         ProposedLeaseId: Guid;
     begin
-        ContainerLeaseAcquire(RequestObject, DurationSeconds, ProposedLeaseId); // Custom duration, new Guid
+        BlobLeaseAcquire(RequestObject, DurationSeconds, ProposedLeaseId); // Custom duration, new Guid
     end;
 
     /// <summary>
