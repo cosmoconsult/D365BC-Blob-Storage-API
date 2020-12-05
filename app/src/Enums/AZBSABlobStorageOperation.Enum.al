@@ -43,4 +43,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Lease Container';
     }
+    value(31; LeaseBlob)
+    {
+        Caption = 'Lease Blob';
+    }
 }
