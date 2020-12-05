@@ -43,7 +43,7 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container&comp=list
             Operation::PutContainer:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
-            Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob:
+            Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob:
                 ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>/<BlobName>
             Operation::LeaseContainer:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + LeaseContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=lease
