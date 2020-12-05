@@ -18,6 +18,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         DeleteBlobOperationNotSuccessfulErr: Label 'Could not Blob %1 in container %2.', Comment = '%1 = Blob Name; %2 = Container Name';
         UploadBlobOperationNotSuccessfulErr: Label 'Could not upload %1 to %2', Comment = '%1 = Blob Name; %2 = Container Name';
         LeaseOperationNotSuccessfulErr: Label 'Could not %1 lease for %2 %3.', Comment = '%1 = Lease Action, %2 = Type (Container or Blob), %3 = Name';
+        CopyOperationNotSuccessfulErr: Label 'Could not copy %1 to %2.', Comment = '%1 = Source, %2 = Desctination';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
 
@@ -619,4 +620,36 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, OperationNotSuccessfulErr);
     end;
     // #endregion Private Lease-functions
+
+    /// <summary>
+    /// The Copy Blob operation copies a blob to a destination within the storage account.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceName">Specifies the name of the source blob or file.</param>
+    procedure CopyBlob(var RequestObject: Codeunit "AZBSA Request Object"; SourceName: Text)
+    var
+        LeaseId: Guid;
+    begin
+        CopyBlob(RequestObject, SourceName, LeaseId);
+    end;
+
+    /// <summary>
+    /// The Copy Blob operation copies a blob to a destination within the storage account.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceName">Specifies the name of the source blob or file.</param>
+    /// <param name="LeaseId">Required if the destination blob has an active lease. The lease ID specified must match the lease ID of the destination blob.</param>
+    procedure CopyBlob(var RequestObject: Codeunit "AZBSA Request Object"; SourceName: Text; LeaseId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::DeleteBlob);
+        RequestObject.SetCopySourceNameHeader(SourceName);
+        if not IsNullGuid(LeaseId) then
+            RequestObject.SetLeaseIdHeader(LeaseId);
+        WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
+    end;
 }

@@ -98,6 +98,19 @@ page 89003 "AZBSA Container Contents"
                 end;
             }
 
+            action(CopyBlobAction)
+            {
+                Caption = 'Copy Blob';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    CopyBlob(Rec.Name);
+                end;
+            }
+
             action(AcquireLeaseBlob)
             {
                 Caption = 'Acquire Lease';
@@ -159,8 +172,42 @@ page 89003 "AZBSA Container Contents"
         until ContainerContent.Next() = 0;
     end;
 
+    local procedure CopyBlob(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        SourceRequestObject: Codeunit "AZBSA Request Object";
+        URIHelper: Codeunit "AZBSA URI Helper";
+        InputDialog: Page "AZBSA Input Dialog Copy Blob";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        DestStorAccName: Text;
+        DestContainer: Text;
+        DestBlobName: Text;
+        SourceURI: Text;
+    begin
+        // Get Information from User
+        InputDialog.InitPage(OriginalRequestObject.GetStorageAccountName(), OriginalRequestObject.GetContainerName(), BlobName);
+        if InputDialog.RunModal() <> Action::OK then
+            exit;
+        InputDialog.GetResults(DestStorAccName, DestContainer, DestBlobName);
+
+        // Create two "Request Objects"; one for Source one for Destination
+        InitializeRequestObjectFromOriginal(SourceRequestObject, DestBlobName); // copy from "OriginalRequestObject"
+        SourceRequestObject.SetOperation(Operation::CopyBlob);
+
+        InitializeRequestObjectFromOriginal(RequestObject, ''); // copy from "OriginalRequestObject"
+        RequestObject.InitializeRequest(DestStorAccName, DestContainer, DestBlobName); // Update with user Values
+
+        // Create URI for Source Blob
+        SourceURI := URIHelper.ConstructUri(SourceRequestObject);
+
+        API.CopyBlob(RequestObject, SourceURI);
+    end;
+
     local procedure InitializeRequestObjectFromOriginal(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text)
     begin
+        if BlobName = '' then
+            BlobName := OriginalRequestObject.GetBlobName();
         RequestObject.InitializeAuthorization(OriginalRequestObject.GetAuthorizationType(), OriginalRequestObject.GetSecret());
         RequestObject.InitializeRequest(OriginalRequestObject.GetStorageAccountName(), OriginalRequestObject.GetContainerName(), BlobName);
     end;

@@ -19,6 +19,11 @@ codeunit 89006 "AZBSA URI Helper"
     end;
 
     // #region Uri generation
+    procedure ConstructUri(var RequestObject: Codeunit "AZBSA Request Object"): Text
+    begin
+        exit(ConstructUri(RequestObject.GetStorageAccountName(), RequestObject.GetContainerName(), RequestObject.GetBlobName(), RequestObject.GetOperation(), RequestObject.GetAuthorizationType(), RequestObject.GetSecret()));
+    end;
+
     procedure ConstructUri(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Operation: Enum "AZBSA Blob Storage Operation"; AuthType: Enum "AZBSA Authorization Type"; Secret: Text): Text
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
