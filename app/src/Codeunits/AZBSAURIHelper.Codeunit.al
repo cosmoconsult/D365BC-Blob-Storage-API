@@ -29,7 +29,7 @@ codeunit 89006 "AZBSA URI Helper"
         ListContainerExtensionLbl: Label 'comp=list';
         LeaseContainerExtensionLbl: Label 'comp=lease';
         BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
-        BlobInContainerWithExtensionLbl: Label '%1/%2/%3?%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
+        BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
         TestConstructUrlParameter(StorageAccountName, ContainerName, BlobName, Operation, AuthType, Secret);
 
