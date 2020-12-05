@@ -80,8 +80,6 @@ page 89003 "AZBSA Container Contents"
             {
                 Caption = 'Show Entry Details';
                 Image = ViewDetails;
-                // Promoted = true;
-                // PromotedIsBig = true;
                 ApplicationArea = All;
                 ToolTip = 'xxx';
 
@@ -99,10 +97,48 @@ page 89003 "AZBSA Container Contents"
                     Message(OuterXml);
                 end;
             }
+
+            action(AcquireLeaseBlob)
+            {
+                Caption = 'Acquire Lease';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    BlobAcquireLease(Rec.Name);
+                end;
+            }
+            action(RenewLeaseBlob)
+            {
+                Caption = 'Renew Lease';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    BlobRenewLease(Rec.Name, GlobalLeaseId);
+                end;
+            }
+            action(ReleaseLeaseBlob)
+            {
+                Caption = 'Release Lease';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    BlobReleaseLease(Rec.Name, GlobalLeaseId);
+                end;
+            }
         }
     }
     var
         OriginalRequestObject: Codeunit "AZBSA Request Object";
+        GlobalLeaseId: Guid;
 
     procedure AddEntry(ContainerContent: Record "AZBSA Container Content")
     begin
@@ -121,5 +157,44 @@ page 89003 "AZBSA Container Contents"
             Rec.TransferFields(ContainerContent);
             Rec.Insert();
         until ContainerContent.Next() = 0;
+    end;
+
+    local procedure InitializeRequestObjectFromOriginal(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text)
+    begin
+        RequestObject.InitializeAuthorization(OriginalRequestObject.GetAuthorizationType(), OriginalRequestObject.GetSecret());
+        RequestObject.InitializeRequest(OriginalRequestObject.GetStorageAccountName(), OriginalRequestObject.GetContainerName(), BlobName);
+    end;
+
+    local procedure BlobAcquireLease(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.BlobLeaseAcquire(RequestObject, 15);
+        GlobalLeaseId := RequestObject.GetHeaderValueFromResponseHeaders('x-ms-lease-id');
+        Message('Initiated 15-second lease. Saved LeaseId to Global variable');
+    end;
+
+    local procedure BlobRenewLease(BlobName: Text; LeaseId: Guid)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        if IsNullGuid(LeaseID) then
+            Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.BlobLeaseRenew(RequestObject, LeaseID);
+    end;
+
+    local procedure BlobReleaseLease(BlobName: Text; LeaseId: Guid)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        if IsNullGuid(LeaseID) then
+            Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.BlobLeaseRelease(RequestObject, LeaseID);
     end;
 }

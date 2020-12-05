@@ -236,7 +236,7 @@ table 89000 "AZBSA Blob Storage Connection"
         RequestObject: Codeunit "AZBSA Request Object";
     begin
         if IsNullGuid(LeaseID) then
-            Error('You need to call "Acuire Lease" first (global variable "LeaseId" is not set)');
+            Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
         RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
         RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
         API.ContainerLeaseRelease(RequestObject, LeaseID);
@@ -257,7 +257,7 @@ table 89000 "AZBSA Blob Storage Connection"
         RequestObject: Codeunit "AZBSA Request Object";
     begin
         if IsNullGuid(LeaseID) then
-            Error('You need to call "Acuire Lease" first (global variable "LeaseId" is not set)');
+            Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
         RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
         RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
         API.ContainerLeaseRenew(RequestObject, LeaseID);
