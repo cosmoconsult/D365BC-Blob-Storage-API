@@ -713,4 +713,40 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, '<Custom Error here>');
     end;
     // #endregion (PUT) Set Blob Service Properties
+
+    // #region (GET) Get Blob Properties
+    /// <summary>
+    /// The Get Blob Service Properties operation gets the properties of a storage account’s Blob service, including properties for Storage Analytics and CORS (Cross-Origin Resource Sharing) rules
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties
+    /// Read the result from the Response Headers after using this
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetBlobProperties(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlobProperties);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+    end;
+    // #endregion (GET) Get Blob Properties
+
+    // #region (PUT) Set Blob Properties
+    /// <summary>
+    /// The Set Blob Properties operation sets system properties on the blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-properties
+    /// Read the result from the Response Headers after using this
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure SetBlobProperties(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::SetBlobProperties);
+        WebRequestHelper.PutOperation(RequestObject, Content, '<Custom Error here>');
+    end;
+    // #endregion (PUT) Set Blob Properties
 }

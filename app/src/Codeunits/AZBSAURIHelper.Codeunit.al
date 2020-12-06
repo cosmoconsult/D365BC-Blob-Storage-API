@@ -68,6 +68,10 @@ codeunit 89006 "AZBSA URI Helper"
                 end;
             Operation::GetBlobServiceProperties, Operation::SetBlobServiceProperties:
                 ConstructedUrl := StrSubstNo(ServiceExtensionLbl, ConstructedUrl, '&' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=service&comp=properties
+            Operation::GetBlobProperties:
+                ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
+            Operation::SetBlobProperties:
+                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
             else
                 Error('Operation needs to be defined');
         end;
