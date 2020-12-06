@@ -87,7 +87,7 @@ codeunit 89002 "AZBSA Helper Library"
         until ContainerContent.Next() = 0;
         ContainerContents.LookupMode(true);
         if ContainerContents.RunModal() = Action::LookupOK then begin
-            ContainerContents.GetRecord(ContainerContent);
+            ContainerContents.GetRecord(ContainerContentReturn);
             exit(ContainerContentReturn."Full Name");
         end;
     end;
