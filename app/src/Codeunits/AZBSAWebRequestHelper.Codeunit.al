@@ -225,13 +225,21 @@ codeunit 89004 "AZBSA Web Request Helper"
         RequestObject.GetSortedHeadersDictionary(HeadersDictionary);
         RequestObject.SetHeaderValues(HeadersDictionary);
         foreach HeaderKey in HeadersDictionary.Keys do
-            RequestObject.AddHeader(Headers, HeaderKey, HeadersDictionary.Get(HeaderKey));
+            if not IsContentHeader(HeaderKey) then
+                RequestObject.AddHeader(Headers, HeaderKey, HeadersDictionary.Get(HeaderKey));
         case RequestObject.GetAuthorizationType() of
             AuthType::SharedKey:
                 RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetSharedKeySignature(HttpRequestType));
         end;
     end;
+
     // #endregion
+    local procedure IsContentHeader(HeaderKey: Text): Boolean
+    begin
+        if HeaderKey in ['Content-Type', 'x-ms-blob-content-length', 'Content-Length', 'x-ms-blob-type'] then // TODO: Check if these are all
+            exit(true);
+        exit(false);
+    end;
 
     /// <summary>
     /// Retrieves the length of the given stream (used for "Content-Length" header in PUT-operations)

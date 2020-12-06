@@ -34,6 +34,13 @@ codeunit 89003 "AZBSA Format Helper"
         exit(Url);
     end;
 
+    procedure RemoveCurlyBracketsFromString("Value": Text): Text
+    begin
+        "Value" := "Value".Replace('{', '');
+        "Value" := "Value".Replace('}', '');
+        exit("Value");
+    end;
+
     procedure ConvertToDateTime(PropertyValue: Text): DateTime
     var
         TypeHelper: Codeunit "Type Helper";

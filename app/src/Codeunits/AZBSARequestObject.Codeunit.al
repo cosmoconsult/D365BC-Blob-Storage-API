@@ -165,6 +165,14 @@ codeunit 89001 "AZBSA Request Object"
         exit(Values[1]);
     end;
 
+    procedure GetCopyIdFromResponseHeaders(): Text
+    var
+        ReturnValue: Text;
+    begin
+        ReturnValue := GetHeaderValueFromResponseHeaders('x-ms-copy-id');
+        exit(ReturnValue);
+    end;
+
     procedure GetHttpResponseStatusCode(): Integer
     begin
         exit(Response.HttpStatusCode());
@@ -191,6 +199,11 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetLeaseIdHeader("Value": Text)
     begin
         AddOptionalHeader('x-ms-lease-id', "Value");
+    end;
+
+    procedure SetSourceLeaseIdHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-source-lease-id', "Value");
     end;
 
     procedure SetLeaseActionHeader("Value": Text)
@@ -257,6 +270,51 @@ codeunit 89001 "AZBSA Request Object"
         MetaKeyValuePairLbl: Label 'x-ms-meta-%1', Comment = '%1 = Key';
     begin
         AddOptionalHeader(StrSubstNo(MetaKeyValuePairLbl, "Name"), "Value");
+    end;
+
+    procedure SetTagsValueHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-tags', "Value"); // Supported in version 2019-12-12 and newer.
+    end;
+
+    procedure SetSourceIfModifiedSinceHeader("Value": DateTime)
+    begin
+        AddOptionalHeader('x-ms-source-if-modified-since', Format("Value")); // TODO: Check DateTime-format for URI
+    end;
+
+    procedure SetSourceIfUnmodifiedSinceHeader("Value": DateTime)
+    begin
+        AddOptionalHeader('x-ms-source-if-unmodified-since', Format("Value")); // TODO: Check DateTime-format for URI
+    end;
+
+    procedure SetSourceIfMatchHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-source-if-match', "Value");
+    end;
+
+    procedure SetSourceIfNoneMatchHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-source-if-none-match', "Value");
+    end;
+
+    procedure SetCopySourceNameHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-copy-source', "Value");
+    end;
+
+    procedure SetAccessTierHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-access-tier', "Value"); // valid values are Hot/Cool/Archive
+    end;
+
+    procedure SetRehydratePriorityHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-rehydrate-priority', "Value"); // Valid values are High/Standard
+    end;
+
+    procedure SetCopyActionHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-copy-action', "Value"); // Valid value is 'abort'
     end;
 
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])

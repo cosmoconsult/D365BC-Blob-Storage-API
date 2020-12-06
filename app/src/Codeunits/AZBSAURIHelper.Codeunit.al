@@ -19,6 +19,11 @@ codeunit 89006 "AZBSA URI Helper"
     end;
 
     // #region Uri generation
+    procedure ConstructUri(var RequestObject: Codeunit "AZBSA Request Object"): Text
+    begin
+        exit(ConstructUri(RequestObject.GetStorageAccountName(), RequestObject.GetContainerName(), RequestObject.GetBlobName(), RequestObject.GetOperation(), RequestObject.GetAuthorizationType(), RequestObject.GetSecret()));
+    end;
+
     procedure ConstructUri(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Operation: Enum "AZBSA Blob Storage Operation"; AuthType: Enum "AZBSA Authorization Type"; Secret: Text): Text
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
@@ -28,12 +33,17 @@ codeunit 89006 "AZBSA URI Helper"
         SingleContainerLbl: Label '%1/%2?restype=container%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = List-extension (if applicable)';
         ListContainerExtensionLbl: Label 'comp=list';
         LeaseContainerExtensionLbl: Label 'comp=lease';
+        CopyContainerExtensionLbl: Label 'comp=copy';
         BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
         BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
         TestConstructUrlParameter(StorageAccountName, ContainerName, BlobName, Operation, AuthType, Secret);
 
         ConstructedUrl := StrSubstNo(BlobStorageBaseUrlLbl, StorageAccountName);
+        // If using Azure Storage Emulator (indicated by Account Name "devstoreaccount1") then use a different Uri
+        if StorageAccountName = 'devstoreaccount1' then
+            ConstructedUrl := 'http://127.0.0.1:10000/devstoreaccount1';
+
         case Operation of
             Operation::ListContainers:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, '', '&' + ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=container&comp=list
@@ -43,12 +53,18 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container&comp=list
             Operation::PutContainer:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
-            Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob:
+            Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob:
                 ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>/<BlobName>
             Operation::LeaseContainer:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + LeaseContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=lease
             Operation::LeaseBlob:
                 ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + LeaseContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=lease
+            Operation::AbortCopyBlob:
+                begin
+                    ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + CopyContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=copy&coppyid=<Id>
+                    FormatHelper.AppendToUri(ConstructedUrl, 'copyid', RetrieveFromOptionalUriParameters('copyid'));
+                end;
+
             else
                 Error('Operation needs to be defined');
         end;
@@ -61,6 +77,17 @@ codeunit 89006 "AZBSA URI Helper"
         exit(ConstructedUrl);
     end;
 
+    local procedure RetrieveFromOptionalUriParameters(Identifier: Text): Text
+    var
+        ReturnValue: Text;
+    begin
+        if not OptionalUriParameters.ContainsKey(Identifier) then
+            exit;
+
+        OptionalUriParameters.Get(Identifier, ReturnValue);
+        exit(ReturnValue);
+    end;
+
     local procedure AddOptionalUriParameters(var Uri: Text)
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
@@ -70,10 +97,11 @@ codeunit 89006 "AZBSA URI Helper"
         if OptionalUriParameters.Count = 0 then
             exit;
 
-        foreach ParameterIdentifier in OptionalUriParameters.Keys do begin
-            OptionalUriParameters.Get(ParameterIdentifier, ParameterValue);
-            FormatHelper.AppendToUri(Uri, ParameterIdentifier, ParameterValue);
-        end;
+        foreach ParameterIdentifier in OptionalUriParameters.Keys do
+            if not (ParameterIdentifier in ['copyid']) then begin
+                OptionalUriParameters.Get(ParameterIdentifier, ParameterValue);
+                FormatHelper.AppendToUri(Uri, ParameterIdentifier, ParameterValue);
+            end;
     end;
 
     local procedure TestConstructUrlParameter(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Operation: Enum "AZBSA Blob Storage Operation"; AuthType: Enum "AZBSA Authorization Type"; Secret: Text)
