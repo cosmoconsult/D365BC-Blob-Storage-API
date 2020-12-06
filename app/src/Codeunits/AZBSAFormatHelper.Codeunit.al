@@ -41,6 +41,14 @@ codeunit 89003 "AZBSA Format Helper"
         exit("Value");
     end;
 
+    procedure TextToXmlDocument(SourceText: Text): XmlDocument
+    var
+        Document: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(SourceText, Document);
+        exit(Document);
+    end;
+
     procedure ConvertToDateTime(PropertyValue: Text): DateTime
     var
         TypeHelper: Codeunit "Type Helper";

@@ -207,6 +207,22 @@ codeunit 89004 "AZBSA Web Request Helper"
         RequestObject.AddHeader(Headers, 'x-ms-blob-type', Format(BlobType));
     end;
 
+    procedure AddServicePropertiesContent(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    var
+        Headers: HttpHeaders;
+        Length: Integer;
+        DocumentAsText: Text;
+    begin
+        DocumentAsText := Format(Document);
+        Length := StrLen(DocumentAsText);
+
+        Content.WriteFrom(DocumentAsText);
+
+        Content.GetHeaders(Headers);
+        RequestObject.AddHeader(Headers, 'Content-Type', 'application/xml');
+        RequestObject.AddHeader(Headers, 'Content-Length', Format(Length));
+    end;
+
     local procedure HandleHeaders(HttpRequestType: Enum "Http Request Type"; var Client: HttpClient; var RequestObject: Codeunit "AZBSA Request Object")
     var
         FormatHelper: Codeunit "AZBSA Format Helper";

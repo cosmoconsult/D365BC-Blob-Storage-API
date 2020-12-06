@@ -98,6 +98,32 @@ page 89003 "AZBSA Container Contents"
                 end;
             }
 
+            action(GetBlobPropertiesAction)
+            {
+                Caption = 'Get Properties';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    GetBlobProperties(Rec.Name);
+                end;
+            }
+
+            action(SetBlobPropertiesAction)
+            {
+                Caption = 'Set Properties (Dummy)';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    SetBlobProperties(Rec.Name);
+                end;
+            }
+
             action(CopyBlobAction)
             {
                 Caption = 'Copy Blob';
@@ -234,6 +260,25 @@ page 89003 "AZBSA Container Contents"
         RequestObject.SetContainerName(ContainerName);
         RequestObject.SetBlobName(BlobName);
         API.AbortCopyBlob(RequestObject, CopyId);
+    end;
+
+    local procedure GetBlobProperties(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.GetBlobProperties(RequestObject);
+    end;
+
+    local procedure SetBlobProperties(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        RequestObject.AddOptionalHeader('x-ms-blob-content-type', 'application/octet-stream');
+        API.SetBlobProperties(RequestObject);
     end;
 
     local procedure InitializeRequestObjectFromOriginal(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text)
