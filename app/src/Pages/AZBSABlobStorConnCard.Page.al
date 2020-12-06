@@ -11,7 +11,7 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
     SourceTable = "AZBSA Blob Storage Connection";
     UsageCategory = Administration;
     ApplicationArea = All;
-    PromotedActionCategories = 'New,Process,Reports,View Container,Create Container,Delete Container,Upload,Download,Delete Blob,Lease';
+    PromotedActionCategories = 'New,Process,Reports,View Container,Create Container,Delete Container,Upload,Download,Delete Blob,Lease,Properties';
 
     layout
     {
@@ -363,6 +363,40 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                     trigger OnAction()
                     begin
                         Rec.DeleteBlobFromTargetContainerUI();
+                    end;
+                }
+            }
+            group(BlobProperties)
+            {
+                Caption = 'Properties';
+                action(GetServiceProperties)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Get Service Properties';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category11;
+
+                    trigger OnAction()
+                    begin
+                        Rec.GetBlobServiceProperties();
+                    end;
+                }
+                action(SetServiceProperties)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Set Service Properties';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category11;
+
+                    trigger OnAction()
+                    begin
+                        Rec.SetBlobServiceProperties();
                     end;
                 }
             }

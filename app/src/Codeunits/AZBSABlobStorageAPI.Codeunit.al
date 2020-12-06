@@ -621,6 +621,7 @@ codeunit 89000 "AZBSA Blob Storage API"
     end;
     // #endregion Private Lease-functions
 
+    // #region (PUT) Copy Blob
     /// <summary>
     /// The Copy Blob operation copies a blob to a destination within the storage account.
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob
@@ -652,7 +653,9 @@ codeunit 89000 "AZBSA Blob Storage API"
             RequestObject.SetLeaseIdHeader(LeaseId);
         WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
     end;
+    // #endregion (PUT) Copy Blob
 
+    // #region (PUT) Abort Copy Blob
     /// <summary>
     /// The Abort Copy Blob operation aborts a pending Copy Blob operation, and leaves a destination blob with zero length and full metadata.
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/abort-copy-blob
@@ -670,4 +673,44 @@ codeunit 89000 "AZBSA Blob Storage API"
         RequestObject.SetCopyActionHeader('abort');
         WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
     end;
+    // #endregion (PUT) Abort Copy Blob
+
+    // #region (GET) Get Blob Service Properties
+    /// <summary>
+    /// The Get Blob Service Properties operation gets the properties of a storage account’s Blob service, including properties for Storage Analytics and CORS (Cross-Origin Resource Sharing) rules
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <returns>XmlDocument containing the current properties</returns>
+    procedure GetBlobServiceProperties(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlobServiceProperties);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Blob Service Properties
+
+    // #region (PUT) Set Blob Service Properties
+    /// <summary>
+    /// The Set Blob Service Properties operation sets properties for a storage account’s Blob service endpoint, including properties for Storage Analytics, CORS (Cross-Origin Resource Sharing) rules and soft delete settings.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-service-properties
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="Document">The XmlDocument containing the Properties</param>
+    procedure SetBlobServiceProperties(var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::SetBlobServiceProperties);
+        WebRequestHelper.AddServicePropertiesContent(Content, RequestObject, Document);
+        WebRequestHelper.PutOperation(RequestObject, Content, '<Custom Error here>');
+    end;
+    // #endregion (PUT) Set Blob Service Properties
 }

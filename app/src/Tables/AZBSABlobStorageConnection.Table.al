@@ -263,6 +263,32 @@ table 89000 "AZBSA Blob Storage Connection"
         API.ContainerLeaseRenew(RequestObject, LeaseID);
     end;
 
+    procedure GetBlobServiceProperties()
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        Message(Format(API.GetBlobServiceProperties(RequestObject)));
+    end;
+
+    procedure SetBlobServiceProperties()
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        Document: XmlDocument;
+    begin
+        // Dummy-call; reads the current properties and calls the setter method with the result
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        Document := API.GetBlobServiceProperties(RequestObject);
+        Clear(RequestObject);
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        API.SetBlobServiceProperties(RequestObject, Document);
+    end;
+
     var
         GlobalLeaseId: Guid;
 }
