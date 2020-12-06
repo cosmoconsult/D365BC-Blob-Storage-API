@@ -19,6 +19,8 @@ codeunit 89000 "AZBSA Blob Storage API"
         UploadBlobOperationNotSuccessfulErr: Label 'Could not upload %1 to %2', Comment = '%1 = Blob Name; %2 = Container Name';
         LeaseOperationNotSuccessfulErr: Label 'Could not %1 lease for %2 %3.', Comment = '%1 = Lease Action, %2 = Type (Container or Blob), %3 = Name';
         CopyOperationNotSuccessfulErr: Label 'Could not copy %1 to %2.', Comment = '%1 = Source, %2 = Desctination';
+        AbortCopyOperationNotSuccessfulErr: Label 'Could not abort copy operation for %1.', Comment = '%1 = Blobname';
+        PropertiesOperationNotSuccessfulErr: Label 'Could not %1%2 Properties.', Comment = '%1 = Get/Set, %2 = Service/"", ';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
 
@@ -671,7 +673,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         RequestObject.SetOperation(Operation::AbortCopyBlob);
         RequestObject.AddOptionalUriParameter('copyid', FormatHelper.RemoveCurlyBracketsFromString(CopyId));
         RequestObject.SetCopyActionHeader('abort');
-        WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(AbortCopyOperationNotSuccessfulErr, CopyId));
     end;
     // #endregion (PUT) Abort Copy Blob
 
@@ -710,7 +712,7 @@ codeunit 89000 "AZBSA Blob Storage API"
     begin
         RequestObject.SetOperation(Operation::SetBlobServiceProperties);
         WebRequestHelper.AddServicePropertiesContent(Content, RequestObject, Document);
-        WebRequestHelper.PutOperation(RequestObject, Content, '<Custom Error here>');
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PropertiesOperationNotSuccessfulErr, 'set', 'Service'));
     end;
     // #endregion (PUT) Set Blob Service Properties
 
@@ -746,7 +748,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         Content: HttpContent;
     begin
         RequestObject.SetOperation(Operation::SetBlobProperties);
-        WebRequestHelper.PutOperation(RequestObject, Content, '<Custom Error here>');
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PropertiesOperationNotSuccessfulErr, 'set', ''));
     end;
     // #endregion (PUT) Set Blob Properties
 }
