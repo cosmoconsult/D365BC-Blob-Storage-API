@@ -652,4 +652,22 @@ codeunit 89000 "AZBSA Blob Storage API"
             RequestObject.SetLeaseIdHeader(LeaseId);
         WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
     end;
+
+    /// <summary>
+    /// The Abort Copy Blob operation aborts a pending Copy Blob operation, and leaves a destination blob with zero length and full metadata.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/abort-copy-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="CopyId">Id with the copy identifier provided in the x-ms-copy-id header of the original Copy Blob operation.</param>
+    procedure AbortCopyBlob(var RequestObject: Codeunit "AZBSA Request Object"; CopyId: Guid)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::AbortCopyBlob);
+        RequestObject.AddOptionalUriParameter('copyid', FormatHelper.RemoveCurlyBracketsFromString(CopyId));
+        RequestObject.SetCopyActionHeader('abort');
+        WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
+    end;
 }

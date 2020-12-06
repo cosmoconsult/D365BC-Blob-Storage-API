@@ -111,6 +111,21 @@ page 89003 "AZBSA Container Contents"
                 end;
             }
 
+            action(AbortCopyBlobAction)
+            {
+                Caption = 'Abort Copy Blob';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    if IsNullGuid(GlobalCopyId) then
+                        Error('You need to initiate a "Copy Blob"-action first');
+                    AbortCopyBlob(GlobalCopyId, GlobalLastDestContainer, GlobalLastDestBlobName);
+                end;
+            }
+
             action(AcquireLeaseBlob)
             {
                 Caption = 'Acquire Lease';
@@ -152,6 +167,9 @@ page 89003 "AZBSA Container Contents"
     var
         OriginalRequestObject: Codeunit "AZBSA Request Object";
         GlobalLeaseId: Guid;
+        GlobalCopyId: Guid;
+        GlobalLastDestContainer: Text;
+        GlobalLastDestBlobName: Text;
 
     procedure AddEntry(ContainerContent: Record "AZBSA Container Content")
     begin
@@ -197,11 +215,25 @@ page 89003 "AZBSA Container Contents"
 
         InitializeRequestObjectFromOriginal(RequestObject, ''); // copy from "OriginalRequestObject"
         RequestObject.InitializeRequest(DestStorAccName, DestContainer, DestBlobName); // Update with user Values
+        GlobalLastDestContainer := DestContainer;
+        GlobalLastDestBlobName := DestBlobName;
 
         // Create URI for Source Blob
         SourceURI := URIHelper.ConstructUri(SourceRequestObject);
 
         API.CopyBlob(RequestObject, SourceURI);
+        GlobalCopyId := RequestObject.GetCopyIdFromResponseHeaders();
+    end;
+
+    local procedure AbortCopyBlob(CopyId: Guid; ContainerName: Text; BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, '');
+        RequestObject.SetContainerName(ContainerName);
+        RequestObject.SetBlobName(BlobName);
+        API.AbortCopyBlob(RequestObject, CopyId);
     end;
 
     local procedure InitializeRequestObjectFromOriginal(var RequestObject: Codeunit "AZBSA Request Object"; BlobName: Text)

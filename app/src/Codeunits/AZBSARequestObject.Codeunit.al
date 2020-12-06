@@ -165,6 +165,14 @@ codeunit 89001 "AZBSA Request Object"
         exit(Values[1]);
     end;
 
+    procedure GetCopyIdFromResponseHeaders(): Text
+    var
+        ReturnValue: Text;
+    begin
+        ReturnValue := GetHeaderValueFromResponseHeaders('x-ms-copy-id');
+        exit(ReturnValue);
+    end;
+
     procedure GetHttpResponseStatusCode(): Integer
     begin
         exit(Response.HttpStatusCode());
@@ -302,6 +310,11 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetRehydratePriorityHeader("Value": Text)
     begin
         AddOptionalHeader('x-ms-rehydrate-priority', "Value"); // Valid values are High/Standard
+    end;
+
+    procedure SetCopyActionHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-copy-action', "Value"); // Valid value is 'abort'
     end;
 
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
