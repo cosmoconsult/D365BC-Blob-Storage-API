@@ -289,6 +289,37 @@ table 89000 "AZBSA Blob Storage Connection"
         API.SetBlobServiceProperties(RequestObject, Document);
     end;
 
+    procedure GetContainerMetadataSource()
+    begin
+        GetContainerMetadata(Rec."Source Container Name");
+    end;
+
+    local procedure GetContainerMetadata(ContainerName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        API.GetContainerMetadata(RequestObject);
+    end;
+
+    procedure SetContainerMetadataSource()
+    begin
+        SetContainerMetadata(Rec."Source Container Name");
+    end;
+
+    local procedure SetContainerMetadata(ContainerName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        RequestObject.SetMetadataNameValueHeader('Dummy', 'DummyValue01');
+        API.SetContainerMetadata(RequestObject);
+    end;
+
     var
         GlobalLeaseId: Guid;
 }

@@ -36,6 +36,7 @@ codeunit 89006 "AZBSA URI Helper"
         LeaseContainerExtensionLbl: Label 'comp=lease';
         CopyContainerExtensionLbl: Label 'comp=copy';
         PropertiesExtensionLbl: Label 'comp=properties';
+        MetadataExtensionLbl: Label 'comp=metadata';
         BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
         BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
@@ -72,6 +73,8 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
             Operation::SetBlobProperties:
                 ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
+            Operation::GetContainerMetadata, Operation::SetContainerMetadata:
+                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + MetadataExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=metadata
             else
                 Error('Operation needs to be defined');
         end;

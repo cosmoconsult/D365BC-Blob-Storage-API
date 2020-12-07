@@ -27,6 +27,14 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Delete Container';
     }
+    value(14; GetContainerMetadata)
+    {
+        Caption = 'Get Container Metadata';
+    }
+    value(15; SetContainerMetadata)
+    {
+        Caption = 'Set Container Metadata';
+    }
     value(20; GetBlob)
     {
         Caption = 'Get Blob';
