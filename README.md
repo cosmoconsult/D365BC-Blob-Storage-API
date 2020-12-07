@@ -31,4 +31,6 @@ These topics are currently on the to-do list:
 - Add events for external extensibility
 - Reproduce further API functions
 - Create better documentation (Wiki?) (Started)
-- Add Tooltipps
+- Add Tooltipps / Rework UI
+- Add Helper for ACL definitions
+- Add Helper for Service Properties
