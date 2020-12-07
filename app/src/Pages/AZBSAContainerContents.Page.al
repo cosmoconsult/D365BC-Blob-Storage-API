@@ -124,6 +124,32 @@ page 89003 "AZBSA Container Contents"
                 end;
             }
 
+            action(GetBlobMetadataAction)
+            {
+                Caption = 'Get Metadata';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    GetBlobMetadata(Rec.Name);
+                end;
+            }
+
+            action(SetBlobMetadataAction)
+            {
+                Caption = 'Set Metadata';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    SetBlobMetadata(Rec.Name);
+                end;
+            }
+
             action(CopyBlobAction)
             {
                 Caption = 'Copy Blob';
@@ -287,6 +313,25 @@ page 89003 "AZBSA Container Contents"
             BlobName := OriginalRequestObject.GetBlobName();
         RequestObject.InitializeAuthorization(OriginalRequestObject.GetAuthorizationType(), OriginalRequestObject.GetSecret());
         RequestObject.InitializeRequest(OriginalRequestObject.GetStorageAccountName(), OriginalRequestObject.GetContainerName(), BlobName);
+    end;
+
+    local procedure GetBlobMetadata(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.GetBlobMetadata(RequestObject);
+    end;
+
+    local procedure SetBlobMetadata(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        RequestObject.SetMetadataNameValueHeader('Dummy', 'DummyValue01');
+        API.SetBlobMetadata(RequestObject);
     end;
 
     local procedure BlobAcquireLease(BlobName: Text)
