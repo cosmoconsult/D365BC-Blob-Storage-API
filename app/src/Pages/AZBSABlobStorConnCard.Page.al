@@ -431,6 +431,38 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                         Rec.SetContainerMetadataSource();
                     end;
                 }
+
+                action(GetContainerAclSource)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Get Container ACL (Source)';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category11;
+
+                    trigger OnAction()
+                    begin
+                        Rec.GetContainerAclSource();
+                    end;
+                }
+
+                action(SetContainerAclSource)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Set Container ACL (Source)';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category11;
+
+                    trigger OnAction()
+                    begin
+                        Rec.SetContainerAclSource();
+                    end;
+                }
             }
         }
     }
