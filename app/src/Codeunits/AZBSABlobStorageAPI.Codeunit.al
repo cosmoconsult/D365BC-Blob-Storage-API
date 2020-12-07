@@ -21,6 +21,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         CopyOperationNotSuccessfulErr: Label 'Could not copy %1 to %2.', Comment = '%1 = Source, %2 = Desctination';
         AbortCopyOperationNotSuccessfulErr: Label 'Could not abort copy operation for %1.', Comment = '%1 = Blobname';
         PropertiesOperationNotSuccessfulErr: Label 'Could not %1%2 Properties.', Comment = '%1 = Get/Set, %2 = Service/"", ';
+        MetadataOperationNotSuccessfulErr: Label 'Could not %1%2 Metadata.', Comment = '%1 = Get/Set, %2 = Container/Blob, ';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
 
@@ -751,4 +752,72 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PropertiesOperationNotSuccessfulErr, 'set', ''));
     end;
     // #endregion (PUT) Set Blob Properties
+
+    // #region (GET) Get Container Metadata
+    /// <summary>
+    /// The Get Container Metadata operation returns all user-defined metadata for the container.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-container-metadata
+    /// Read the result from the Response Headers after using this
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetContainerMetadata(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetContainerMetadata);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+    end;
+    // #endregion (GET) Get Container Metadata
+
+    // #region (PUT) Set Container Metadata
+    /// <summary>
+    /// The Set Container Metadata operation sets one or more user-defined name-value pairs for the specified container.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-container-metadata
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure SetContainerMetadata(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::SetContainerMetadata);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(MetadataOperationNotSuccessfulErr, 'set', 'Container'));
+    end;
+    // #endregion (PUT) Set Container Metadata
+
+    // #region (GET) Get Blob Metadata
+    /// <summary>
+    /// The Get Blob Metadata operation returns all user-defined metadata for the specified blob or snapshot.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata
+    /// Read the result from the Response Headers after using this
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetBlobMetadata(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlobMetadata);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+    end;
+    // #endregion (GET) Get Blob Metadata
+
+    // #region (PUT) Set Blob Metadata
+    /// <summary>
+    /// The Set Blob Metadata operation sets user-defined metadata for the specified blob as one or more name-value pairs.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-metadata
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure SetBlobMetadata(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::SetBlobMetadata);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(MetadataOperationNotSuccessfulErr, 'set', 'Blob'));
+    end;
+    // #endregion (PUT) Set Blob Metadata
 }

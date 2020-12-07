@@ -90,6 +90,7 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetOperation(NewOperation: Enum "AZBSA Blob Storage Operation")
     begin
         Operation := NewOperation;
+        // TODO: Add "case NewOperation of" validation, to make sure that the minimum parameters (StorageAccountName, ContainerName, etc) are set here
     end;
 
     procedure GetOperation(): Enum "AZBSA Blob Storage Operation"
