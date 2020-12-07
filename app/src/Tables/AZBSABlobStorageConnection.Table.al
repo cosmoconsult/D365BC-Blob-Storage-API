@@ -320,6 +320,42 @@ table 89000 "AZBSA Blob Storage Connection"
         API.SetContainerMetadata(RequestObject);
     end;
 
+    procedure GetContainerAclSource()
+    begin
+        GetContainerAcl(Rec."Source Container Name");
+    end;
+
+    local procedure GetContainerAcl(ContainerName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        API.GetContainerACL(RequestObject);
+    end;
+
+    procedure SetContainerAclSource()
+    begin
+        SetContainerAcl(Rec."Source Container Name");
+    end;
+
+    local procedure SetContainerAcl(ContainerName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        Document: XmlDocument;
+    begin
+        // Dummy call
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        Document := API.GetContainerACL(RequestObject);
+        Clear(RequestObject);
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        API.SetContainerACL(RequestObject, Document);
+    end;
+
     var
         GlobalLeaseId: Guid;
 }

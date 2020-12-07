@@ -22,6 +22,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         AbortCopyOperationNotSuccessfulErr: Label 'Could not abort copy operation for %1.', Comment = '%1 = Blobname';
         PropertiesOperationNotSuccessfulErr: Label 'Could not %1%2 Properties.', Comment = '%1 = Get/Set, %2 = Service/"", ';
         MetadataOperationNotSuccessfulErr: Label 'Could not %1%2 Metadata.', Comment = '%1 = Get/Set, %2 = Container/Blob, ';
+        ContainerAclOperationNotSuccessfulErr: Label 'Could not %1 Container ACL.', Comment = '%1 = Get/Set ';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
 
@@ -820,4 +821,43 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, StrSubstNo(MetadataOperationNotSuccessfulErr, 'set', 'Blob'));
     end;
     // #endregion (PUT) Set Blob Metadata
+
+    // #region (GET) Get Container ACL
+    /// <summary>
+    /// The Get Container ACL operation gets the permissions for the specified container. The permissions indicate whether container data may be accessed publicly.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-container-acl
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <returns>XmlDocument containing the current ACL</returns>
+    procedure GetContainerACL(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetContainerAcl);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Container ACL
+
+    // #region (PUT) Set Container ACL
+    /// <summary>
+    /// The Set Container ACL operation sets the permissions for the specified container. The permissions indicate whether blobs in a container may be accessed publicly.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-container-acl
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="Document">The XmlDocument containing the ACL definition</param>
+    procedure SetContainerACL(var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::SetContainerAcl);
+        WebRequestHelper.AddContainerAclDefinition(Content, RequestObject, Document);
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(ContainerAclOperationNotSuccessfulErr, 'set'));
+    end;
+    // #endregion (PUT) Set Container ACL
 }

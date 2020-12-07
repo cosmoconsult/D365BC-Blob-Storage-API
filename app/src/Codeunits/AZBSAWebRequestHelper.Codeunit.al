@@ -207,7 +207,17 @@ codeunit 89004 "AZBSA Web Request Helper"
         RequestObject.AddHeader(Headers, 'x-ms-blob-type', Format(BlobType));
     end;
 
-    procedure AddServicePropertiesContent(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    procedure AddServicePropertiesContent(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    begin
+        AddXmlDocumentAsContent(Content, RequestObject, Document);
+    end;
+
+    procedure AddContainerAclDefinition(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    begin
+        AddXmlDocumentAsContent(Content, RequestObject, Document);
+    end;
+
+    local procedure AddXmlDocumentAsContent(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
     var
         Headers: HttpHeaders;
         Length: Integer;
