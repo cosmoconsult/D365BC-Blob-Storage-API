@@ -1,8 +1,22 @@
 {
 	"folders": [
 		{
+			"name" : "App",
 			"path": "app"
+		},
+		{
+			"name": "Test",
+			"path": "test"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"al.enableCodeAnalysis": true,
+		"al.ruleSetPath": "codeCop.RuleSet.json",
+		"al.codeAnalyzers":  [
+								 "${PerTenantExtensionCop}",
+								 "${CodeCop}",
+								 "${UICop}"
+							 ],
+		"CRS.AlSubFolderName":  "src"
+	}
 }
