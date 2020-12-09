@@ -6,7 +6,8 @@ codeunit 89151 "AZBSAT Constants"
     end;
 
     var
-        StorageAccountNameLbl: Label 'azbsaunittesting001';
+        StorageAccountNameLbl: Label 'azbsaunittesting001'; // This Storage Account is setup together with an Timer-triggered Azure function
+                                                            // the Account gets completely cleared every 60 seconds
         AccessKeyLbl: Label '<Not public, sorry>';
 
     procedure InitializeSharedKeyAuthorization(var RequestObject: Codeunit "AZBSA Request Object")
