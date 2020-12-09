@@ -463,6 +463,21 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                         Rec.SetContainerAclSource();
                     end;
                 }
+                action(GetContainerPropertiesSource)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Get Container Properties (Source)';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category11;
+
+                    trigger OnAction()
+                    begin
+                        Rec.GetContainerPropertiesSource();
+                    end;
+                }
             }
         }
     }

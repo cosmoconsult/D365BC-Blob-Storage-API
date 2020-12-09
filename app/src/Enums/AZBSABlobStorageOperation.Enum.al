@@ -43,6 +43,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Set Container ACL';
     }
+    value(18; GetContainerProperties)
+    {
+        Caption = 'Get Container Properties';
+    }
     value(20; GetBlob)
     {
         Caption = 'Get Blob';
