@@ -1,0 +1,46 @@
+{
+  "id": "0a401e8f-4040-48bd-a2d7-ce4fd587ac03",
+  "name": "Azure Blob Storage API Tests",
+  "publisher": "SimonOfHH",
+  "version": "0.0.0.1",
+  "brief": "Makes the Azure Blob API easily accessible",
+  "description": "Provides a set of AL functionality and Helper libraries to make use of Azure Blob Storage in MSDyn365BC",
+  "privacyStatement": "http://www.xxx.com",
+  "EULA": "http://www.xxx.com",
+  "help": "http://www.xxx.com",
+  "url": "http://www.xxx.com",
+  "logo": "res/logo/azure-half.png",
+  "dependencies": [
+    {
+      "id": "8047d691-d376-4570-bfe6-9e0d785b8f32",
+      "name": "Azure Blob Storage API",
+      "publisher": "SimonOfHH",
+      "version": "0.0.0.1"
+    },
+    {
+        "id":  "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+        "publisher":  "Microsoft",
+        "name":  "Library Assert",
+        "version":  "1.0.0.0"
+    },
+    {
+        "id":  "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+        "publisher":  "Microsoft",
+        "name":  "Any",
+        "version":  "17.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "features": ["TranslationFile"],
+  "platform": "17.0.0.0",
+  "application": "17.0.0.0",
+  "idRanges": [
+    {
+      "from": 89149,
+      "to": 89299
+    }
+  ],
+  "contextSensitiveHelpUrl": "https://app.com/help/",
+  "showMyCode": true,
+  "runtime": "6.0"
+}

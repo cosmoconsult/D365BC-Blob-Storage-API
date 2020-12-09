@@ -1,0 +1,11 @@
+{
+    "name": "Name",
+    "description": "Description",
+    "rules": [
+            {
+                "id": "AA0072",
+                "action": "None",
+                "justification": "None"
+            }
+    ]
+}
