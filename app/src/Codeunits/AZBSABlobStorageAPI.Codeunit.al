@@ -860,4 +860,22 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(ContainerAclOperationNotSuccessfulErr, 'set'));
     end;
     // #endregion (PUT) Set Container ACL
+
+    // #region (GET) Get Container Properties
+    /// <summary>
+    /// The Get Container Properties operation returns all user-defined metadata and system properties for the specified container. The data returned does not include the container's list of blobs.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-container-properties
+    /// Read the result from the Response Headers after using this
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetContainerProperties(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetContainerProperties);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+    end;
+    // #endregion (GET) Get Container Properties
 }
