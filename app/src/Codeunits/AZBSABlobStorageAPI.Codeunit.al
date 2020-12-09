@@ -895,5 +895,25 @@ codeunit 89000 "AZBSA Blob Storage API"
         RequestObject.SetOperation(Operation::GetAccountInformation);
         WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
     end;
-    // #endregion (GET) Get Get Account Information
+    // #endregion (GET) Get Account Information
+
+    // #region (GET) Get Blob Service Stats
+    /// <summary>
+    /// The Get Blob Service Stats operation retrieves statistics related to replication for the Blob service. It is only available on the secondary location endpoint when read-access geo-redundant replication is enabled for the storage account.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-stats
+    /// Read the result from the Response Headers after using this
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetBlobServiceStats(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlobServiceStats);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Blob Service Stats
 }

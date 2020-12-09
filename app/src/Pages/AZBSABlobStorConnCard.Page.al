@@ -414,6 +414,21 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                         Rec.GetAccountInformation();
                     end;
                 }
+                action(GetBlobServiceStats)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Get Service Stats';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category11;
+
+                    trigger OnAction()
+                    begin
+                        Rec.GetBlobServiceStats();
+                    end;
+                }
 
                 action(GetContainerMetadataSource)
                 {

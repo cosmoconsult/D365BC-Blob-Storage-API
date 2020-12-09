@@ -39,6 +39,7 @@ codeunit 89006 "AZBSA URI Helper"
         PropertiesExtensionLbl: Label 'comp=properties';
         MetadataExtensionLbl: Label 'comp=metadata';
         AclExtensionLbl: Label 'comp=acl';
+        StatsExtensionLbl: Label 'comp=stats';
         BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
         BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
@@ -80,6 +81,11 @@ codeunit 89006 "AZBSA URI Helper"
                 end;
             Operation::GetBlobServiceProperties, Operation::SetBlobServiceProperties:
                 ConstructedUrl := StrSubstNo(ServiceExtensionLbl, ConstructedUrl, '&' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=service&comp=properties
+            Operation::GetBlobServiceStats:
+                begin
+                    ConstructedUrl := StrSubstNo(BlobStorageBaseUrlLbl, StorageAccountName + '-secondary');
+                    ConstructedUrl := StrSubstNo(ServiceExtensionLbl, ConstructedUrl, '&' + StatsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=service&comp=stats
+                end;
             Operation::GetBlobProperties:
                 ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
             Operation::SetBlobProperties:
