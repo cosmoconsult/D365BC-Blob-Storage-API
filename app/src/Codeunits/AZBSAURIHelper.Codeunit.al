@@ -32,6 +32,7 @@ codeunit 89006 "AZBSA URI Helper"
         BlobStorageBaseUrlLbl: Label 'https://%1.blob.core.windows.net', Comment = '%1 = Storage Account Name';
         SingleContainerLbl: Label '%1/%2?restype=container%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Extension (if applicable)';
         ServiceExtensionLbl: Label '%1/?restype=service%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
+        AccountExtensionLbl: Label '%1/?restype=account%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
         ListContainerExtensionLbl: Label 'comp=list';
         LeaseContainerExtensionLbl: Label 'comp=lease';
         CopyContainerExtensionLbl: Label 'comp=copy';
@@ -48,7 +49,16 @@ codeunit 89006 "AZBSA URI Helper"
         if StorageAccountName = 'devstoreaccount1' then
             ConstructedUrl := 'http://127.0.0.1:10000/devstoreaccount1';
 
+        // TODO: Change URI generation:
+        //       - Create Base URI (https://%1.blob.core.windows.net)
+        //       - append container (if necessary)
+        //       - append blob (if necessary)
+        //       - append resttype (if necessary)
+        //       - append comp parameter (if necessary)
+
         case Operation of
+            Operation::GetAccountInformation:
+                ConstructedUrl := StrSubstNo(AccountExtensionLbl, ConstructedUrl, '&' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
             Operation::ListContainers:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, '', '&' + ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=container&comp=list
             Operation::DeleteContainer:

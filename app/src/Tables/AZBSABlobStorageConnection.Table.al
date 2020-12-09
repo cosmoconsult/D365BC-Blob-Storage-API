@@ -371,6 +371,17 @@ table 89000 "AZBSA Blob Storage Connection"
         API.GetContainerProperties(RequestObject);
     end;
 
+    procedure GetAccountInformation()
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name", Rec."Source Container Name");
+        RequestObject.SetApiVersion(Rec."API Version");
+        API.GetAccountInformation(RequestObject);
+    end;
+
     var
         GlobalLeaseId: Guid;
 }

@@ -11,6 +11,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = '';
     }
+    value(1; GetAccountInformation)
+    {
+        Caption = 'Get Account Information';
+    }
     value(10; ListContainers)
     {
         Caption = 'List Containers';
