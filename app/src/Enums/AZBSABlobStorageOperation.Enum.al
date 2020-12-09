@@ -11,6 +11,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = '';
     }
+    value(1; GetAccountInformation)
+    {
+        Caption = 'Get Account Information';
+    }
     value(10; ListContainers)
     {
         Caption = 'List Containers';
@@ -90,6 +94,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     value(41; SetBlobServiceProperties)
     {
         Caption = 'Set Blob Service Properties';
+    }
+    value(42; GetBlobServiceStats)
+    {
+        Caption = 'Get Blob Service Stats';
     }
     value(50; GetBlobProperties)
     {

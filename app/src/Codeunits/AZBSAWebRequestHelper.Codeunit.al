@@ -43,10 +43,13 @@ codeunit 89004 "AZBSA Web Request Helper"
         FormatHelper: Codeunit "AZBSA Format Helper";
         Client: HttpClient;
         HttpRequestType: Enum "Http Request Type";
+        RequestMsg: HttpRequestMessage;
     begin
         HandleHeaders(HttpRequestType::GET, Client, RequestObject);
 
-        if not Client.Get(RequestObject.ConstructUri(), Response) then
+        RequestMsg.Method(Format(HttpRequestType::GET));
+        RequestMsg.SetRequestUri(RequestObject.ConstructUri());
+        if not Client.Send(RequestMsg, Response) then
             Error(IntitialGetFailedErr, RequestObject.ConstructUri(), Response.HttpStatusCode, Response.ReasonPhrase);
         RequestObject.SetHttpResponse(Response);
         if not Response.IsSuccessStatusCode then
