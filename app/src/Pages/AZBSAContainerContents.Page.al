@@ -152,7 +152,7 @@ page 89003 "AZBSA Container Contents"
 
             action(GetBlobTagsAction)
             {
-                Caption = 'GetTags';
+                Caption = 'Get Tags';
                 Image = ViewDetails;
                 ApplicationArea = All;
                 ToolTip = 'xxx';
@@ -160,6 +160,18 @@ page 89003 "AZBSA Container Contents"
                 trigger OnAction()
                 begin
                     GetBlobTags(Rec.Name);
+                end;
+            }
+            action(SetBlobTagsAction)
+            {
+                Caption = 'Set Tags (Dummy)';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    SetBlobTags(Rec.Name);
                 end;
             }
 
@@ -355,6 +367,18 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         Message(Format(API.GetBlobTags(RequestObject)));
+    end;
+
+    local procedure SetBlobTags(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        Tags: Dictionary of [Text, Text];
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        Tags.Add('tag-name-1', 'tag-value-1');
+        Tags.Add('tag-name-2', 'tag-value-2');
+        API.SetBlobTags(RequestObject, Tags);
     end;
 
     local procedure BlobAcquireLease(BlobName: Text)

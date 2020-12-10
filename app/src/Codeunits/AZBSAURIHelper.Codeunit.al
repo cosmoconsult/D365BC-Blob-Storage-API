@@ -97,7 +97,7 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + MetadataExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=lease
             Operation::GetContainerAcl, Operation::SetContainerAcl:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + AclExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=metadata
-            Operation::GetBlobTags:
+            Operation::GetBlobTags, Operation::SetBlobTags:
                 ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + TagsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=tags
             else
                 Error('Operation needs to be defined');

@@ -41,6 +41,31 @@ codeunit 89003 "AZBSA Format Helper"
         exit("Value");
     end;
 
+    procedure TagsDictionaryToXmlDocument(Tags: Dictionary of [Text, Text]): XmlDocument
+    var
+        Document: XmlDocument;
+        TagSetNode: XmlNode;
+        TagNode: XmlNode;
+        KeyNode: XmlNode;
+        ValueNode: XmlNode;
+        Keys: List of [Text];
+        "Key": Text;
+    begin
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="utf-8"?><Tags><TagSet></TagSet></Tags>', Document);
+        Document.SelectSingleNode('/Tags/TagSet', TagSetNode);
+        Keys := Tags.Keys;
+        foreach "Key" in Keys do begin
+            TagNode := XmlElement.Create('Tag').AsXmlNode();
+            KeyNode := XmlElement.Create('Key', '', "Key").AsXmlNode();
+            ValueNode := XmlElement.Create('Value', '', Tags.Get("Key")).AsXmlNode();
+            TagSetNode.AsXmlElement().Add(TagNode);
+
+            TagNode.AsXmlElement().Add(KeyNode);
+            TagNode.AsXmlElement().Add(ValueNode);
+        end;
+        exit(Document);
+    end;
+
     procedure TextToXmlDocument(SourceText: Text): XmlDocument
     var
         Document: XmlDocument;

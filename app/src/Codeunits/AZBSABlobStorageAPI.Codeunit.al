@@ -21,6 +21,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         CopyOperationNotSuccessfulErr: Label 'Could not copy %1 to %2.', Comment = '%1 = Source, %2 = Desctination';
         AbortCopyOperationNotSuccessfulErr: Label 'Could not abort copy operation for %1.', Comment = '%1 = Blobname';
         PropertiesOperationNotSuccessfulErr: Label 'Could not %1%2 Properties.', Comment = '%1 = Get/Set, %2 = Service/"", ';
+        TagsOperationNotSuccessfulErr: Label 'Could not %1%2 Tags.', Comment = '%1 = Get/Set, %2 = Service/Blob, ';
         MetadataOperationNotSuccessfulErr: Label 'Could not %1%2 Metadata.', Comment = '%1 = Get/Set, %2 = Container/Blob, ';
         ContainerAclOperationNotSuccessfulErr: Label 'Could not %1 Container ACL.', Comment = '%1 = Get/Set ';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
@@ -934,4 +935,38 @@ codeunit 89000 "AZBSA Blob Storage API"
         exit(FormatHelper.TextToXmlDocument(ResponseText));
     end;
     // #endregion (GET) Get Blob Tags
+
+    // #region (PUT) Set Blob Tags
+    /// <summary>
+    /// The Set Blob Tags operation sets user-defined tags for the specified blob as one or more key-value pairs.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="Tags">A Dictionary of [Text, Text] which contains the Tags you want to set.</param>    
+    procedure SetBlobTags(var RequestObject: Codeunit "AZBSA Request Object"; Tags: Dictionary of [Text, Text])
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Document: XmlDocument;
+    begin
+        Document := FormatHelper.TagsDictionaryToXmlDocument(Tags);
+        SetBlobTags(RequestObject, Document);
+    end;
+
+    /// <summary>
+    /// The Set Blob Tags operation sets user-defined tags for the specified blob as one or more key-value pairs.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="Tags">A Dictionary of [Text, Text] which contains the Tags you want to set.</param>    
+    procedure SetBlobTags(var RequestObject: Codeunit "AZBSA Request Object"; Tags: XmlDocument)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Content: HttpContent;
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::SetBlobTags);
+        WebRequestHelper.AddTagsContent(Content, RequestObject, Tags);
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(TagsOperationNotSuccessfulErr, 'set', 'Blob'));
+    end;
+    // #endregion (PUT) Set Blob Tags
 }

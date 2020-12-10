@@ -83,6 +83,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Get Blob Tags';
     }
+    value(28; SetBlobTags)
+    {
+        Caption = 'Set Blob Tags';
+    }
     value(30; LeaseContainer)
     {
         Caption = 'Lease Container';
