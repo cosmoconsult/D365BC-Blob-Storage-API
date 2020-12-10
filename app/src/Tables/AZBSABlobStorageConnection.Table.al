@@ -112,6 +112,7 @@ table 89000 "AZBSA Blob Storage Connection"
     begin
         RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
         RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        RequestObject.SetApiVersion(Rec."API Version");
         API.ListBlobs(RequestObject);
     end;
 

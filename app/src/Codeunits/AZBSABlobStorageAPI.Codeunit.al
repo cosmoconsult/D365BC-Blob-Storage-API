@@ -901,7 +901,6 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// <summary>
     /// The Get Blob Service Stats operation retrieves statistics related to replication for the Blob service. It is only available on the secondary location endpoint when read-access geo-redundant replication is enabled for the storage account.
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-stats
-    /// Read the result from the Response Headers after using this
     /// </summary>
     /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
     procedure GetBlobServiceStats(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
@@ -916,4 +915,23 @@ codeunit 89000 "AZBSA Blob Storage API"
         exit(FormatHelper.TextToXmlDocument(ResponseText));
     end;
     // #endregion (GET) Get Blob Service Stats
+
+    // #region (GET) Get Blob Tags
+    /// <summary>
+    /// The Get Blob Tags operation returns all user-defined tags for the specified blob, version, or snapshot.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetBlobTags(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlobTags);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Blob Tags
 }

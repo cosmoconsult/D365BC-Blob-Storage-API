@@ -40,6 +40,7 @@ codeunit 89006 "AZBSA URI Helper"
         MetadataExtensionLbl: Label 'comp=metadata';
         AclExtensionLbl: Label 'comp=acl';
         StatsExtensionLbl: Label 'comp=stats';
+        TagsExtensionLbl: Label 'comp=tags';
         BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
         BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
@@ -96,6 +97,8 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + MetadataExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=lease
             Operation::GetContainerAcl, Operation::SetContainerAcl:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + AclExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=metadata
+            Operation::GetBlobTags:
+                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + TagsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=tags
             else
                 Error('Operation needs to be defined');
         end;
