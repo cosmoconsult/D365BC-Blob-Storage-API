@@ -150,6 +150,31 @@ page 89003 "AZBSA Container Contents"
                 end;
             }
 
+            action(GetBlobTagsAction)
+            {
+                Caption = 'Get Tags';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    GetBlobTags(Rec.Name);
+                end;
+            }
+            action(SetBlobTagsAction)
+            {
+                Caption = 'Set Tags (Dummy)';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    SetBlobTags(Rec.Name);
+                end;
+            }
+
             action(CopyBlobAction)
             {
                 Caption = 'Copy Blob';
@@ -313,6 +338,7 @@ page 89003 "AZBSA Container Contents"
             BlobName := OriginalRequestObject.GetBlobName();
         RequestObject.InitializeAuthorization(OriginalRequestObject.GetAuthorizationType(), OriginalRequestObject.GetSecret());
         RequestObject.InitializeRequest(OriginalRequestObject.GetStorageAccountName(), OriginalRequestObject.GetContainerName(), BlobName);
+        RequestObject.SetApiVersion(OriginalRequestObject.GetApiVersion());
     end;
 
     local procedure GetBlobMetadata(BlobName: Text)
@@ -332,6 +358,27 @@ page 89003 "AZBSA Container Contents"
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         RequestObject.SetMetadataNameValueHeader('Dummy', 'DummyValue01');
         API.SetBlobMetadata(RequestObject);
+    end;
+
+    local procedure GetBlobTags(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        Message(Format(API.GetBlobTags(RequestObject)));
+    end;
+
+    local procedure SetBlobTags(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        Tags: Dictionary of [Text, Text];
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        Tags.Add('tag-name-1', 'tag-value-1');
+        Tags.Add('tag-name-2', 'tag-value-2');
+        API.SetBlobTags(RequestObject, Tags);
     end;
 
     local procedure BlobAcquireLease(BlobName: Text)

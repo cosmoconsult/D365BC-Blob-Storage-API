@@ -33,6 +33,7 @@ codeunit 89006 "AZBSA URI Helper"
         SingleContainerLbl: Label '%1/%2?restype=container%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Extension (if applicable)';
         ServiceExtensionLbl: Label '%1/?restype=service%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
         AccountExtensionLbl: Label '%1/?restype=account%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
+        BaseWithExtensionLbl: Label '%1?%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
         ListContainerExtensionLbl: Label 'comp=list';
         LeaseContainerExtensionLbl: Label 'comp=lease';
         CopyContainerExtensionLbl: Label 'comp=copy';
@@ -40,6 +41,8 @@ codeunit 89006 "AZBSA URI Helper"
         MetadataExtensionLbl: Label 'comp=metadata';
         AclExtensionLbl: Label 'comp=acl';
         StatsExtensionLbl: Label 'comp=stats';
+        TagsExtensionLbl: Label 'comp=tags';
+        BlobsExtensionLbl: Label 'comp=blobs';
         BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
         BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
@@ -96,6 +99,10 @@ codeunit 89006 "AZBSA URI Helper"
                 ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + MetadataExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=lease
             Operation::GetContainerAcl, Operation::SetContainerAcl:
                 ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + AclExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=metadata
+            Operation::GetBlobTags, Operation::SetBlobTags:
+                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + TagsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=tags
+            Operation::FindBlobByTags:
+                ConstructedUrl := StrSubstNo(BaseWithExtensionLbl, ConstructedUrl, BlobsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?comp=blobs&where=<expression>
             else
                 Error('Operation needs to be defined');
         end;
@@ -145,6 +152,7 @@ codeunit 89006 "AZBSA URI Helper"
         ContainerNameLbl: Label 'Container Name';
         BlobNameLbl: Label 'Blob Name';
         OperationLbl: Label 'Operation';
+        OperationWorksOnlyWithAuthErr: Label 'Operation "%1" works only with "%2" authentication at the moment', Comment = '%1 = Operation, %2 = Authorization Type';
     begin
         if StorageAccountName = '' then
             Error(ValueCanNotBeEmptyErr, StorageAccountNameLbl);
@@ -168,6 +176,9 @@ codeunit 89006 "AZBSA URI Helper"
                     if BlobName = '' then
                         Error(ValueCanNotBeEmptyErr, BlobNameLbl);
                 end;
+            Operation = Operation::FindBlobByTags:
+                if AuthType <> AuthType::SasToken then
+                    Error(OperationWorksOnlyWithAuthErr, Operation, AuthType);
         end;
     end;
     // #endregion Uri generation

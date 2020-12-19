@@ -41,6 +41,67 @@ codeunit 89003 "AZBSA Format Helper"
         exit("Value");
     end;
 
+    procedure TagsDictionaryToXmlDocument(Tags: Dictionary of [Text, Text]): XmlDocument
+    var
+        Document: XmlDocument;
+        TagSetNode: XmlNode;
+        TagNode: XmlNode;
+        KeyNode: XmlNode;
+        ValueNode: XmlNode;
+        Keys: List of [Text];
+        "Key": Text;
+    begin
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="utf-8"?><Tags><TagSet></TagSet></Tags>', Document);
+        Document.SelectSingleNode('/Tags/TagSet', TagSetNode);
+        Keys := Tags.Keys;
+        foreach "Key" in Keys do begin
+            TagNode := XmlElement.Create('Tag').AsXmlNode();
+            KeyNode := XmlElement.Create('Key', '', "Key").AsXmlNode();
+            ValueNode := XmlElement.Create('Value', '', Tags.Get("Key")).AsXmlNode();
+            TagSetNode.AsXmlElement().Add(TagNode);
+
+            TagNode.AsXmlElement().Add(KeyNode);
+            TagNode.AsXmlElement().Add(ValueNode);
+        end;
+        exit(Document);
+    end;
+
+    procedure TagsDictionaryToSearchExpression(Tags: Dictionary of [Text, Text]): Text
+    var
+        Helper: Codeunit "Uri";
+        Keys: List of [Text];
+        "Key": Text;
+        SingleQuoteChar: Char;
+        Expression: Text;
+        ExpressionPartLbl: Label '"%1" %2 %3%4%5', Comment = '%1 = Tag, %2 = Operator, %3 = Single Quote, %4 = Value, %5 = Single Quote';
+    begin
+        SingleQuoteChar := 39;
+        Keys := Tags.Keys;
+        foreach "Key" in Keys do begin
+            if Expression <> '' then
+                Expression += ' AND ';
+            Expression := StrSubstNo(ExpressionPartLbl, "Key", GetOperatorFromValue(Tags.Get("Key")), SingleQuoteChar, GetValueWithoutOperator(Tags.Get("Key")), SingleQuoteChar);
+        end;
+        Expression := Helper.EscapeDataString(Expression);
+        exit(Expression);
+    end;
+
+    local procedure GetOperatorFromValue("Value": Text): Text
+    var
+        NewValue: Text;
+    begin
+        NewValue := "Value".Substring(1, "Value".IndexOf(' '));
+        exit(NewValue.Trim());
+    end;
+
+    local procedure GetValueWithoutOperator("Value": Text): Text
+    var
+        NewValue: Text;
+    begin
+        NewValue := "Value".Substring("Value".IndexOf(' ') + 1);
+        exit(NewValue.Trim());
+    end;
+
     procedure TextToXmlDocument(SourceText: Text): XmlDocument
     var
         Document: XmlDocument;

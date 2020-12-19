@@ -21,6 +21,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         CopyOperationNotSuccessfulErr: Label 'Could not copy %1 to %2.', Comment = '%1 = Source, %2 = Desctination';
         AbortCopyOperationNotSuccessfulErr: Label 'Could not abort copy operation for %1.', Comment = '%1 = Blobname';
         PropertiesOperationNotSuccessfulErr: Label 'Could not %1%2 Properties.', Comment = '%1 = Get/Set, %2 = Service/"", ';
+        TagsOperationNotSuccessfulErr: Label 'Could not %1%2 Tags.', Comment = '%1 = Get/Set, %2 = Service/Blob, ';
         MetadataOperationNotSuccessfulErr: Label 'Could not %1%2 Metadata.', Comment = '%1 = Get/Set, %2 = Container/Blob, ';
         ContainerAclOperationNotSuccessfulErr: Label 'Could not %1 Container ACL.', Comment = '%1 = Get/Set ';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
@@ -901,7 +902,6 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// <summary>
     /// The Get Blob Service Stats operation retrieves statistics related to replication for the Blob service. It is only available on the secondary location endpoint when read-access geo-redundant replication is enabled for the storage account.
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-stats
-    /// Read the result from the Response Headers after using this
     /// </summary>
     /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
     procedure GetBlobServiceStats(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
@@ -916,4 +916,89 @@ codeunit 89000 "AZBSA Blob Storage API"
         exit(FormatHelper.TextToXmlDocument(ResponseText));
     end;
     // #endregion (GET) Get Blob Service Stats
+
+    // #region (GET) Get Blob Tags
+    /// <summary>
+    /// The Get Blob Tags operation returns all user-defined tags for the specified blob, version, or snapshot.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure GetBlobTags(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlobTags);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Blob Tags
+
+    // #region (PUT) Set Blob Tags
+    /// <summary>
+    /// The Set Blob Tags operation sets user-defined tags for the specified blob as one or more key-value pairs.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="Tags">A Dictionary of [Text, Text] which contains the Tags you want to set.</param>    
+    procedure SetBlobTags(var RequestObject: Codeunit "AZBSA Request Object"; Tags: Dictionary of [Text, Text])
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Document: XmlDocument;
+    begin
+        Document := FormatHelper.TagsDictionaryToXmlDocument(Tags);
+        SetBlobTags(RequestObject, Document);
+    end;
+
+    /// <summary>
+    /// The Set Blob Tags operation sets user-defined tags for the specified blob as one or more key-value pairs.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="Tags">A Dictionary of [Text, Text] which contains the Tags you want to set.</param>    
+    procedure SetBlobTags(var RequestObject: Codeunit "AZBSA Request Object"; Tags: XmlDocument)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Content: HttpContent;
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::SetBlobTags);
+        WebRequestHelper.AddTagsContent(Content, RequestObject, Tags);
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(TagsOperationNotSuccessfulErr, 'set', 'Blob'));
+    end;
+    // #endregion (PUT) Set Blob Tags
+
+    // #region (GET) Find Blob by Tags
+    /// <summary>
+    /// The Find Blobs by Tags operation finds all blobs in the storage account whose tags match a given search expression.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/find-blobs-by-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure FindBlobsByTags(var RequestObject: Codeunit "AZBSA Request Object"; SearchTags: Dictionary of [Text, Text]): XmlDocument
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+    begin
+        exit(FindBlobsByTags(RequestObject, FormatHelper.TagsDictionaryToSearchExpression(SearchTags)));
+    end;
+
+    /// <summary>
+    /// The Find Blobs by Tags operation finds all blobs in the storage account whose tags match a given search expression.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/find-blobs-by-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure FindBlobsByTags(var RequestObject: Codeunit "AZBSA Request Object"; SearchExpression: Text): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::FindBlobByTags);
+        RequestObject.AddOptionalUriParameter('where', SearchExpression);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Blob Tags
 }
