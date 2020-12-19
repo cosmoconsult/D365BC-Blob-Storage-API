@@ -239,6 +239,18 @@ page 89003 "AZBSA Container Contents"
                     BlobReleaseLease(Rec.Name, GlobalLeaseId);
                 end;
             }
+            action(SetExpirationRelativeToNow)
+            {
+                Caption = 'Set Expiration (+15 seconds)';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    SetBlobExpirationRelativeToNow(Rec.Name, 15000);
+                end;
+            }
         }
     }
     var
@@ -412,5 +424,14 @@ page 89003 "AZBSA Container Contents"
             Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.BlobLeaseRelease(RequestObject, LeaseID);
+    end;
+
+    local procedure SetBlobExpirationRelativeToNow(BlobName: Text; ExpiryTime: Integer)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.SetBlobExpiryRelativeToNow(RequestObject, ExpiryTime);
     end;
 }

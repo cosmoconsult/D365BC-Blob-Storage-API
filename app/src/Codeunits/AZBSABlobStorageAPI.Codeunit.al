@@ -24,6 +24,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         TagsOperationNotSuccessfulErr: Label 'Could not %1%2 Tags.', Comment = '%1 = Get/Set, %2 = Service/Blob, ';
         MetadataOperationNotSuccessfulErr: Label 'Could not %1%2 Metadata.', Comment = '%1 = Get/Set, %2 = Container/Blob, ';
         ContainerAclOperationNotSuccessfulErr: Label 'Could not %1 Container ACL.', Comment = '%1 = Get/Set ';
+        ExpiryOperationNotSuccessfulErr: Label 'Could not set expiration on %1.', Comment = '%1 = Blob';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
 
@@ -1000,5 +1001,105 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
         exit(FormatHelper.TextToXmlDocument(ResponseText));
     end;
-    // #endregion (GET) Get Blob Tags
+    // #endregion (GET) Find Blob by Tags
+
+    // #region (PUT) Set Blob Expiry
+    /// <summary>
+    /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
+    /// Sets the expiry time relative to the file creation time, x-ms-expiry-time must be specified as the number of milliseconds to elapse from creation time.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-expiry
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="ExpiryTime">Number if miliseconds (Integer) until the expiration.</param>
+    procedure SetBlobExpiryRelativeToCreation(var RequestObject: Codeunit "AZBSA Request Object"; ExpiryTime: Integer)
+    var
+        ExpiryOption: Enum "AZBSA Blob Expiry Option";
+    begin
+        SetBlobExpiry(RequestObject, ExpiryOption::RelativeToCreation, ExpiryTime, StrSubstNo(ExpiryOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+
+    /// <summary>
+    /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
+    /// Sets the expiry relative to the current time, x-ms-expiry-time must be specified as the number of milliseconds to elapse from now.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-expiry
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="ExpiryTime">Number if miliseconds (Integer) until the expiration.</param>
+    procedure SetBlobExpiryRelativeToNow(var RequestObject: Codeunit "AZBSA Request Object"; ExpiryTime: Integer)
+    var
+        ExpiryOption: Enum "AZBSA Blob Expiry Option";
+    begin
+        SetBlobExpiry(RequestObject, ExpiryOption::RelativeToNow, ExpiryTime, StrSubstNo(ExpiryOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+
+    /// <summary>
+    /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
+    /// Sets the expiry to an absolute DateTime
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-expiry
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="ExpiryTime">Absolute DateTime for the expiration.</param>
+    procedure SetBlobExpiryAbsolute(var RequestObject: Codeunit "AZBSA Request Object"; ExpiryTime: DateTime)
+    var
+        ExpiryOption: Enum "AZBSA Blob Expiry Option";
+    begin
+        SetBlobExpiry(RequestObject, ExpiryOption::Absolute, ExpiryTime, StrSubstNo(ExpiryOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+
+    /// <summary>
+    /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
+    /// Sets the file to never expire or removes the current expiry time, x-ms-expiry-time must not to be specified.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-expiry
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure SetBlobExpiryNever(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        ExpiryOption: Enum "AZBSA Blob Expiry Option";
+    begin
+        SetBlobExpiry(RequestObject, ExpiryOption::NeverExpire, '', StrSubstNo(ExpiryOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+
+    /// <summary>
+    /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-expiry
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="ExpiryOption">The type of expiration that should be set.</param>
+    /// <param name="ExpiryTime">Variant containing Nothing, number if miliseconds (Integer) or the absolute DateTime for the expiration.</param>
+    /// <param name="OperationNotSuccessfulErr">The error message that should be thrown when the request fails.</param>
+    procedure SetBlobExpiry(var RequestObject: Codeunit "AZBSA Request Object"; ExpiryOption: Enum "AZBSA Blob Expiry Option"; ExpiryTime: Variant; OperationNotSuccessfulErr: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        DateTimeValue: DateTime;
+        IntegerValue: Integer;
+        SpecifyMilisecondsErr: Label 'You need to specify an Integer Value (number of miliseconds) for option %1', Comment = '%1 = Expiry Option';
+        SpecifyDateTimeErr: Label 'You need to specify an DateTime Value for option %1', Comment = '%1 = Expiry Option';
+    begin
+        RequestObject.SetOperation(Operation::SetBlobExpiry);
+        RequestObject.SetBlobExpiryOptionHeader(Format(ExpiryOption));
+        case ExpiryOption of
+            ExpiryOption::RelativeToCreation, ExpiryOption::RelativeToNow:
+                if not ExpiryTime.IsInteger() then
+                    Error(SpecifyMilisecondsErr, ExpiryOption);
+            ExpiryOption::Absolute:
+                if not ExpiryTime.IsDateTime() then
+                    Error(SpecifyDateTimeErr, ExpiryOption);
+        end;
+        if not (ExpiryOption in [ExpiryOption::NeverExpire]) then
+            case true of
+                ExpiryTime.IsInteger():
+                    begin
+                        IntegerValue := ExpiryTime;
+                        RequestObject.SetBlobExpiryTimeHeader(IntegerValue);
+                    end;
+                ExpiryTime.IsDateTime():
+                    begin
+                        DateTimeValue := ExpiryTime;
+                        RequestObject.SetBlobExpiryTimeHeader(DateTimeValue);
+                    end;
+            end;
+        WebRequestHelper.PutOperation(RequestObject, OperationNotSuccessfulErr);
+    end;
+    // #endregion (PUT) Set Blob Expiry
 }

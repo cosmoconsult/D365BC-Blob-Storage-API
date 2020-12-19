@@ -318,6 +318,23 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader('x-ms-copy-action', "Value"); // Valid value is 'abort'
     end;
 
+    procedure SetBlobExpiryOptionHeader("Value": Text)
+    begin
+        AddOptionalHeader('x-ms-expiry-option', "Value"); // Valid values are RelativeToCreation/RelativeToNow/Absolute/NeverExpire
+    end;
+
+    procedure SetBlobExpiryTimeHeader("Value": Integer)
+    begin
+        AddOptionalHeader('x-ms-expiry-time', Format("Value")); // Either an RFC 1123 datetime or miliseconds-value
+    end;
+
+    procedure SetBlobExpiryTimeHeader("Value": DateTime)
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+    begin
+        AddOptionalHeader('x-ms-expiry-time', FormatHelper.GetRfc1123DateTime(("Value"))); // Either an RFC 1123 datetime or miliseconds-value
+    end;
+
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
     begin
         HeaderValues := NewHeaderValues;
