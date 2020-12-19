@@ -30,82 +30,26 @@ codeunit 89006 "AZBSA URI Helper"
         AuthorizationType: Enum "AZBSA Authorization Type";
         ConstructedUrl: Text;
         BlobStorageBaseUrlLbl: Label 'https://%1.blob.core.windows.net', Comment = '%1 = Storage Account Name';
-        SingleContainerLbl: Label '%1/%2?restype=container%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Extension (if applicable)';
-        ServiceExtensionLbl: Label '%1/?restype=service%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
-        AccountExtensionLbl: Label '%1/?restype=account%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
-        BaseWithExtensionLbl: Label '%1?%2', Comment = '%1 = Base URL; %2 = Extension (if applicable)';
-        ListContainerExtensionLbl: Label 'comp=list';
-        LeaseContainerExtensionLbl: Label 'comp=lease';
-        CopyContainerExtensionLbl: Label 'comp=copy';
-        PropertiesExtensionLbl: Label 'comp=properties';
-        MetadataExtensionLbl: Label 'comp=metadata';
-        AclExtensionLbl: Label 'comp=acl';
-        StatsExtensionLbl: Label 'comp=stats';
-        TagsExtensionLbl: Label 'comp=tags';
-        BlobsExtensionLbl: Label 'comp=blobs';
-        BlobInContainerLbl: Label '%1/%2/%3', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name';
-        BlobInContainerWithExtensionLbl: Label '%1/%2/%3%4', Comment = '%1 = Base URL; %2 = Container Name ; %3 = Blob Name; %4 = Extension';
     begin
         TestConstructUrlParameter(StorageAccountName, ContainerName, BlobName, Operation, AuthType, Secret);
 
+        // e.g. https://<StorageAccountName>-secondary.blob.core.windows.net/?restype=service&comp=stats
+        if (Operation = Operation::GetBlobServiceStats) and (StorageAccountName <> 'devstoreaccount1') then
+            StorageAccountName := StorageAccountName + '-secondary';
         ConstructedUrl := StrSubstNo(BlobStorageBaseUrlLbl, StorageAccountName);
+
         // If using Azure Storage Emulator (indicated by Account Name "devstoreaccount1") then use a different Uri
         if StorageAccountName = 'devstoreaccount1' then
             ConstructedUrl := 'http://127.0.0.1:10000/devstoreaccount1';
 
-        // TODO: Change URI generation:
-        //       - Create Base URI (https://%1.blob.core.windows.net)
-        //       - append container (if necessary)
-        //       - append blob (if necessary)
-        //       - append resttype (if necessary)
-        //       - append comp parameter (if necessary)
+        AppendContainerIfNecessary(ConstructedUrl, ContainerName, Operation);
+        AppendBlobIfNecessary(ConstructedUrl, BlobName, Operation);
+        AppendRestTypeIfNecessary(ConstructedUrl, Operation);
+        AppendCompValueIfNecessary(ConstructedUrl, Operation);
 
-        case Operation of
-            Operation::GetAccountInformation:
-                ConstructedUrl := StrSubstNo(AccountExtensionLbl, ConstructedUrl, '&' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
-            Operation::ListContainers:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, '', '&' + ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=container&comp=list
-            Operation::DeleteContainer:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/?restype=container&comp=list
-            Operation::ListContainerContents:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + ListContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container&comp=list
-            Operation::PutContainer, Operation::GetContainerProperties:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, ''); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
-            Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob:
-                ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<ContainerName>/<BlobName>
-            Operation::LeaseContainer:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + LeaseContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=lease
-            Operation::LeaseBlob:
-                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + LeaseContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=lease
-            Operation::AbortCopyBlob:
-                begin
-                    ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + CopyContainerExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=copy&coppyid=<Id>
-                    FormatHelper.AppendToUri(ConstructedUrl, 'copyid', RetrieveFromOptionalUriParameters('copyid'));
-                end;
-            Operation::GetBlobServiceProperties, Operation::SetBlobServiceProperties:
-                ConstructedUrl := StrSubstNo(ServiceExtensionLbl, ConstructedUrl, '&' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=service&comp=properties
-            Operation::GetBlobServiceStats:
-                begin
-                    ConstructedUrl := StrSubstNo(BlobStorageBaseUrlLbl, StorageAccountName + '-secondary');
-                    ConstructedUrl := StrSubstNo(ServiceExtensionLbl, ConstructedUrl, '&' + StatsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?restype=service&comp=stats
-                end;
-            Operation::GetBlobProperties:
-                ConstructedUrl := StrSubstNo(BlobInContainerLbl, ConstructedUrl, ContainerName, BlobName); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
-            Operation::SetBlobProperties:
-                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + PropertiesExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
-            Operation::GetContainerMetadata, Operation::SetContainerMetadata:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + MetadataExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=metadata
-            Operation::GetBlobMetadata, Operation::SetBlobMetadata:
-                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + MetadataExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=lease
-            Operation::GetContainerAcl, Operation::SetContainerAcl:
-                ConstructedUrl := StrSubstNo(SingleContainerLbl, ConstructedUrl, ContainerName, '&' + AclExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>?restype=container&comp=metadata
-            Operation::GetBlobTags, Operation::SetBlobTags:
-                ConstructedUrl := StrSubstNo(BlobInContainerWithExtensionLbl, ConstructedUrl, ContainerName, BlobName, '?' + TagsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=tags
-            Operation::FindBlobByTags:
-                ConstructedUrl := StrSubstNo(BaseWithExtensionLbl, ConstructedUrl, BlobsExtensionLbl); // https://<StorageAccountName>.blob.core.windows.net/?comp=blobs&where=<expression>
-            else
-                Error('Operation needs to be defined');
-        end;
+        // e.g. https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=copy&coppyid=<Id>
+        if Operation = Operation::AbortCopyBlob then
+            FormatHelper.AppendToUri(ConstructedUrl, 'copyid', RetrieveFromOptionalUriParameters('copyid'));
 
         AddOptionalUriParameters(ConstructedUrl);
 
@@ -113,6 +57,99 @@ codeunit 89006 "AZBSA URI Helper"
         if AuthType = AuthorizationType::SasToken then
             FormatHelper.AppendToUri(ConstructedUrl, '', Secret);
         exit(ConstructedUrl);
+    end;
+
+    local procedure AppendContainerIfNecessary(var ConstructedUrl: Text; ContainerName: Text; Operation: Enum "AZBSA Blob Storage Operation")
+    begin
+        // e.g. https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
+        if not (Operation in [Operation::DeleteContainer, Operation::ListContainerContents, Operation::PutContainer,
+                              Operation::GetContainerProperties, Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob,
+                              Operation::CopyBlob, Operation::LeaseContainer, Operation::LeaseBlob, Operation::AbortCopyBlob,
+                              Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
+                              Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
+                              Operation::GetBlobTags, Operation::SetBlobTags]) then
+            exit;
+        if not ConstructedUrl.EndsWith('/') then
+            ConstructedUrl += '/';
+        ConstructedUrl += ContainerName;
+    end;
+
+    local procedure AppendBlobIfNecessary(var ConstructedUrl: Text; BlobName: Text; Operation: Enum "AZBSA Blob Storage Operation")
+    begin
+        // e.g. https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
+        if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::LeaseBlob,
+                              Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
+                              Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags]) then
+            exit;
+        if not ConstructedUrl.EndsWith('/') then
+            ConstructedUrl += '/';
+        ConstructedUrl += BlobName;
+    end;
+
+    local procedure AppendRestTypeIfNecessary(var ConstructedUrl: Text; Operation: Enum "AZBSA Blob Storage Operation")
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        RestType: Text;
+        RestTypeLbl: Label 'restype';
+        ContainerRestTypeLbl: Label 'container';
+        ServiceRestTypeLbl: Label 'service';
+        AccountRestTypeLbl: Label 'account';
+    begin
+        // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
+        case Operation of
+            Operation::LeaseContainer, Operation::PutContainer, Operation::GetContainerProperties, Operation::ListContainerContents,
+            Operation::DeleteContainer, Operation::ListContainers, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
+            Operation::GetContainerAcl, Operation::SetContainerAcl:
+                RestType := ContainerRestTypeLbl;
+            Operation::GetAccountInformation:
+                RestType := AccountRestTypeLbl;
+            Operation::GetBlobServiceProperties, Operation::SetBlobServiceProperties, Operation::GetBlobServiceStats:
+                RestType := ServiceRestTypeLbl;
+        end;
+        if RestType = '' then
+            exit;
+        FormatHelper.AppendToUri(ConstructedUrl, RestTypeLbl, RestType);
+    end;
+
+    local procedure AppendCompValueIfNecessary(var ConstructedUrl: Text; Operation: Enum "AZBSA Blob Storage Operation")
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        CompValue: Text;
+        CompIdentifierLbl: Label 'comp';
+        ListExtensionLbl: Label 'list';
+        LeaseExtensionLbl: Label 'lease';
+        CopyExtensionLbl: Label 'copy';
+        PropertiesExtensionLbl: Label 'properties';
+        MetadataExtensionLbl: Label 'metadata';
+        AclExtensionLbl: Label 'acl';
+        StatsExtensionLbl: Label 'stats';
+        TagsExtensionLbl: Label 'tags';
+        BlobsExtensionLbl: Label 'blobs';
+    begin
+        // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
+        case Operation of
+            Operation::ListContainers, Operation::ListContainerContents:
+                CompValue := ListExtensionLbl;
+            Operation::LeaseContainer, Operation::LeaseBlob:
+                CompValue := LeaseExtensionLbl;
+            Operation::AbortCopyBlob:
+                CompValue := CopyExtensionLbl;
+            Operation::GetAccountInformation, Operation::GetBlobServiceProperties, Operation::SetBlobServiceProperties, Operation::SetBlobProperties:
+                CompValue := PropertiesExtensionLbl;
+            Operation::GetContainerMetadata, Operation::SetContainerMetadata, Operation::GetBlobMetadata, Operation::SetBlobMetadata:
+                CompValue := MetadataExtensionLbl;
+            Operation::GetContainerAcl, Operation::SetContainerAcl:
+                CompValue := AclExtensionLbl;
+            Operation::GetBlobServiceStats:
+                CompValue := StatsExtensionLbl;
+            Operation::GetBlobTags, Operation::SetBlobTags:
+                CompValue := TagsExtensionLbl;
+            Operation::FindBlobByTags:
+                CompValue := BlobsExtensionLbl;
+        end;
+        if CompValue = '' then
+            exit;
+        FormatHelper.AppendToUri(ConstructedUrl, CompIdentifierLbl, CompValue);
     end;
 
     local procedure RetrieveFromOptionalUriParameters(Identifier: Text): Text
