@@ -102,6 +102,22 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                     end;
                 }
 
+                action(FindBlobsByTags)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Find Blobs By Tags';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category4;
+
+                    trigger OnAction();
+                    begin
+                        Rec.FindBlobsByTags();
+                    end;
+                }
+
                 action(ListSourceContents)
                 {
                     ApplicationArea = All;

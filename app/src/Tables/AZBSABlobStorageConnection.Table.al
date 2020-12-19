@@ -116,6 +116,27 @@ table 89000 "AZBSA Blob Storage Connection"
         API.ListBlobs(RequestObject);
     end;
 
+    procedure FindBlobsByTags()
+    var
+        RequestObject: Codeunit "AZBSA Request Object";
+        SearchTags: Dictionary of [Text, Text];
+    begin
+        // Only as an example
+        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
+        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        RequestObject.SetApiVersion(Rec."API Version");
+        SearchTags.Add('DummyTagName', '= DummyTagValue');
+        FindBlobsByTags(RequestObject, SearchTags);
+    end;
+
+    procedure FindBlobsByTags(var RequestObject: Codeunit "AZBSA Request Object"; SearchTags: Dictionary of [Text, Text])
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        Document: XmlDocument;
+    begin
+        Document := API.FindBlobsByTags(RequestObject, SearchTags)
+    end;
+
     procedure CreateSourceContainer()
     begin
         CreateContainer(Rec."Source Container Name");

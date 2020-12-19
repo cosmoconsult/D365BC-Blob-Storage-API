@@ -969,4 +969,36 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(TagsOperationNotSuccessfulErr, 'set', 'Blob'));
     end;
     // #endregion (PUT) Set Blob Tags
+
+    // #region (GET) Find Blob by Tags
+    /// <summary>
+    /// The Find Blobs by Tags operation finds all blobs in the storage account whose tags match a given search expression.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/find-blobs-by-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure FindBlobsByTags(var RequestObject: Codeunit "AZBSA Request Object"; SearchTags: Dictionary of [Text, Text]): XmlDocument
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+    begin
+        exit(FindBlobsByTags(RequestObject, FormatHelper.TagsDictionaryToSearchExpression(SearchTags)));
+    end;
+
+    /// <summary>
+    /// The Find Blobs by Tags operation finds all blobs in the storage account whose tags match a given search expression.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/find-blobs-by-tags
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    procedure FindBlobsByTags(var RequestObject: Codeunit "AZBSA Request Object"; SearchExpression: Text): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::FindBlobByTags);
+        RequestObject.AddOptionalUriParameter('where', SearchExpression);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Blob Tags
 }
