@@ -15,7 +15,7 @@ codeunit 89000 "AZBSA Blob Storage API"
     var
         CreateContainerOperationNotSuccessfulErr: Label 'Could not create container %1.', Comment = '%1 = Container Name';
         DeleteContainerOperationNotSuccessfulErr: Label 'Could not delete container %1.', Comment = '%1 = Container Name';
-        DeleteBlobOperationNotSuccessfulErr: Label 'Could not Blob %1 in container %2.', Comment = '%1 = Blob Name; %2 = Container Name';
+        DeleteBlobOperationNotSuccessfulErr: Label 'Could not %3 Blob %1 in container %2.', Comment = '%1 = Blob Name; %2 = Container Name, %3 = Delete/Undelete';
         UploadBlobOperationNotSuccessfulErr: Label 'Could not upload %1 to %2', Comment = '%1 = Blob Name; %2 = Container Name';
         LeaseOperationNotSuccessfulErr: Label 'Could not %1 lease for %2 %3.', Comment = '%1 = Lease Action, %2 = Type (Container or Blob), %3 = Name';
         CopyOperationNotSuccessfulErr: Label 'Could not copy %1 to %2.', Comment = '%1 = Source, %2 = Desctination';
@@ -357,15 +357,31 @@ codeunit 89000 "AZBSA Blob Storage API"
         Operation: Enum "AZBSA Blob Storage Operation";
     begin
         RequestObject.SetOperation(Operation::DeleteBlob);
-        WebRequestHelper.DeleteOperation(RequestObject, StrSubstNo(DeleteBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
+        WebRequestHelper.DeleteOperation(RequestObject, StrSubstNo(DeleteBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName(), 'Delete'));
     end;
+
+    // #region (PUT) Undelete Blob
+    /// <summary>
+    /// The Undelete Blob operation restores the contents and metadata of a soft deleted blob and any associated soft deleted snapshots (version 2017-07-29 or later)
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/undelete-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    procedure UndeleteBlob(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::UndeleteBlob);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(DeleteBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName(), 'Undelete'));
+    end;
+    // #endregion (PUT) Undelete Blob
 
     // #region (PUT) Container Acquire Lease
     /// <summary>
     /// Establishes a lock on a container for delete operations. The lock duration can be 15 to 60 seconds or can be infinite
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/lease-container
     /// </summary>
-    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
     procedure ContainerLeaseAcquire(var RequestObject: Codeunit "AZBSA Request Object")
     var
         ProposedLeaseId: Guid;

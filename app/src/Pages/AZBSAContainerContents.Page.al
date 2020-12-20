@@ -263,6 +263,33 @@ page 89003 "AZBSA Container Contents"
                     SnapshotBlob(Rec.Name);
                 end;
             }
+
+            action(DeleteBlobAction)
+            {
+                Caption = 'Delete Blob';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    DeleteBlob(Rec.Name);
+                end;
+            }
+            action(UndeleteBlobAction)
+            {
+                Caption = 'Undelete Blob';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    if GlobalLastDeleteBlobName = '' then
+                        Error('You need to delete a Blob first to set "GlobalLastDeleteBlobName"');
+                    UndeleteBlob(GlobalLastDeleteBlobName);
+                end;
+            }
         }
     }
     var
@@ -271,6 +298,7 @@ page 89003 "AZBSA Container Contents"
         GlobalCopyId: Guid;
         GlobalLastDestContainer: Text;
         GlobalLastDestBlobName: Text;
+        GlobalLastDeleteBlobName: Text;
 
     procedure AddEntry(ContainerContent: Record "AZBSA Container Content")
     begin
@@ -454,5 +482,24 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.SnapshotBlob(RequestObject);
+    end;
+
+    local procedure DeleteBlob(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.DeleteBlobFromContainer(RequestObject);
+        GlobalLastDeleteBlobName := BlobName;
+    end;
+
+    local procedure UndeleteBlob(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.UndeleteBlob(RequestObject);
     end;
 }
