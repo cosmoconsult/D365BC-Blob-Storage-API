@@ -13,6 +13,7 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
     end;
 
     var
+        ApiVersion: Enum "AZBSA API Version";
         HeaderValues: Dictionary of [Text, Text];
         OptionalHeaderValues: Dictionary of [Text, Text];
         KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
@@ -20,6 +21,11 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
     begin
         HeaderValues := NewHeaderValues;
+    end;
+
+    procedure SetApiVersion(NewApiVersion: Enum "AZBSA API Version")
+    begin
+        ApiVersion := NewApiVersion;
     end;
 
     procedure SetOptionalHeaderValues(NewOptionalHeaderValues: Dictionary of [Text, Text])
@@ -71,6 +77,9 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
     begin
         if not HeaderValues.Get(HeaderKey, ReturnValue) then
             exit('');
+        if HeaderKey = 'Content-Length' then
+            if ReturnValue = '0' then // TODO: In version 2014-02-14 and earlier, the content length was included even if zero.  
+                exit('');
         exit(ReturnValue);
     end;
 

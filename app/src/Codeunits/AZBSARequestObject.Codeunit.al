@@ -494,6 +494,7 @@ codeunit 89001 "AZBSA Request Object"
         ReqAuthAccessKey: Codeunit "AZBSA Req. Auth. Access Key";
     begin
         ReqAuthAccessKey.SetHeaderValues(HeaderValues);
+        ReqAuthAccessKey.SetApiVersion(ApiVersion);
         exit(ReqAuthAccessKey.GetSharedKeySignature(HttpRequestType, StorageAccountName, ConstructUri(), Secret));
     end;
     // #endregion Shared Key Signature Generation

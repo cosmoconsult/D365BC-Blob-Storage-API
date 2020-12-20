@@ -310,6 +310,38 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                         Rec.UploadFileUI(Rec."Target Container Name");
                     end;
                 }
+
+                action(CreateRandomPageBlobSource)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Create Page Blob (Source)';
+                    Image = LaunchWeb;
+                    ToolTip = 'Creates a PageBlob with a Random name in Container (specified in "Source Container Name")';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category7;
+
+                    trigger OnAction()
+                    begin
+                        Rec.CreateRandomPageBlobInContainer(Rec."Source Container Name");
+                    end;
+                }
+
+                action(CreateRandomAppendBlobSource)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Create Append Blob (Source)';
+                    Image = LaunchWeb;
+                    ToolTip = 'Creates a AppendBlob with a Random name in Container (specified in "Source Container Name")';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category7;
+
+                    trigger OnAction()
+                    begin
+                        Rec.CreateRandomAppendBlobInContainer(Rec."Source Container Name");
+                    end;
+                }
             }
             group(DownloadFile)
             {

@@ -81,9 +81,10 @@ codeunit 89004 "AZBSA Web Request Helper"
         HandleHeaders(HttpRequestType::PUT, Client, RequestObject);
         // Prepare HttpRequestMessage
         RequestMsg.Method(Format(HttpRequestType::PUT));
-        if ContentSet(Content) then
+        if ContentSet(Content) or HandleContentHeaders(Content, RequestObject) then
             RequestMsg.Content := Content;
         RequestMsg.SetRequestUri(RequestObject.ConstructUri());
+
         // Send Request    
         Client.Send(RequestMsg, Response);
         RequestObject.SetHttpResponse(Response);
@@ -151,20 +152,22 @@ codeunit 89004 "AZBSA Web Request Helper"
         AddBlobPutContentHeaders(Content, RequestObject, SourceText, BlobType::BlockBlob)
     end;
 
-    /*
-    procedure AddBlobPutPageBlobContentHeaders(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; var SourceStream: InStream)
+    procedure AddBlobPutPageBlobContentHeaders(RequestObject: Codeunit "AZBSA Request Object"; ContentLength: Integer; ContentType: Text)
     var
         BlobType: Enum "AZBSA Blob Type";
+        Content: HttpContent;
     begin
-        AddBlobPutContentHeaders(Content, RequestObject, SourceStream, BlobType::PageBlob)
+        if ContentLength = 0 then
+            ContentLength := 512;
+        AddBlobPutContentHeaders(Content, RequestObject, BlobType::PageBlob, ContentLength, ContentType)
     end;
-    */
 
-    procedure AddBlobPutAppendBlobContentHeaders(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; var SourceStream: InStream)
+    procedure AddBlobPutAppendBlobContentHeaders(RequestObject: Codeunit "AZBSA Request Object"; ContentType: Text)
     var
         BlobType: Enum "AZBSA Blob Type";
+        Content: HttpContent;
     begin
-        AddBlobPutContentHeaders(Content, RequestObject, SourceStream, BlobType::AppendBlob)
+        AddBlobPutContentHeaders(Content, RequestObject, BlobType::AppendBlob, 0, ContentType)
     end;
 
     local procedure AddBlobPutContentHeaders(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; var SourceStream: InStream; BlobType: Enum "AZBSA Blob Type")
@@ -239,6 +242,23 @@ codeunit 89004 "AZBSA Web Request Helper"
         Content.GetHeaders(Headers);
         RequestObject.AddHeader(Headers, 'Content-Type', 'application/xml');
         RequestObject.AddHeader(Headers, 'Content-Length', Format(Length));
+    end;
+
+    local procedure HandleContentHeaders(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"): Boolean
+    var
+        Headers: HttpHeaders;
+        HeadersDictionary: Dictionary of [Text, Text];
+        HeaderKey: Text;
+        ContainsContentHeader: Boolean;
+    begin
+        Content.GetHeaders(Headers);
+        RequestObject.GetSortedHeadersDictionary(HeadersDictionary);
+        foreach HeaderKey in HeadersDictionary.Keys do
+            if IsContentHeader(HeaderKey) then begin
+                RequestObject.AddHeader(Headers, HeaderKey, HeadersDictionary.Get(HeaderKey));
+                ContainsContentHeader := true;
+            end;
+        exit(ContainsContentHeader);
     end;
 
     local procedure HandleHeaders(HttpRequestType: Enum "Http Request Type"; var Client: HttpClient; var RequestObject: Codeunit "AZBSA Request Object")
