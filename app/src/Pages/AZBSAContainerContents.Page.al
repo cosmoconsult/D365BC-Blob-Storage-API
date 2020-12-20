@@ -251,6 +251,18 @@ page 89003 "AZBSA Container Contents"
                     SetBlobExpirationRelativeToNow(Rec.Name, 15000);
                 end;
             }
+            action(SnapshotBlobAction)
+            {
+                Caption = 'Snapshot Blob';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    SnapshotBlob(Rec.Name);
+                end;
+            }
         }
     }
     var
@@ -433,5 +445,14 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.SetBlobExpiryRelativeToNow(RequestObject, ExpiryTime);
+    end;
+
+    local procedure SnapshotBlob(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.SnapshotBlob(RequestObject);
     end;
 }

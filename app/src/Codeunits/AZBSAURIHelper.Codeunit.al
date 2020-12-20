@@ -67,7 +67,7 @@ codeunit 89006 "AZBSA URI Helper"
                               Operation::CopyBlob, Operation::LeaseContainer, Operation::LeaseBlob, Operation::AbortCopyBlob,
                               Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
                               Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
-                              Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry]) then
+                              Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -79,7 +79,7 @@ codeunit 89006 "AZBSA URI Helper"
         // e.g. https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
         if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::LeaseBlob,
                               Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
-                              Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry]) then
+                              Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -126,6 +126,7 @@ codeunit 89006 "AZBSA URI Helper"
         TagsExtensionLbl: Label 'tags';
         BlobsExtensionLbl: Label 'blobs';
         ExpiryExtensionLbl: Label 'expiry';
+        SnapshotExtensionLbl: Label 'snapshot';
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
         case Operation of
@@ -149,6 +150,8 @@ codeunit 89006 "AZBSA URI Helper"
                 CompValue := BlobsExtensionLbl;
             Operation::SetBlobExpiry:
                 CompValue := ExpiryExtensionLbl;
+            Operation::SnapshotBlob:
+                CompValue := SnapshotExtensionLbl;
         end;
         if CompValue = '' then
             exit;

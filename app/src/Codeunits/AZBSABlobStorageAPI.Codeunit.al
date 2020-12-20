@@ -25,6 +25,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         MetadataOperationNotSuccessfulErr: Label 'Could not %1%2 Metadata.', Comment = '%1 = Get/Set, %2 = Container/Blob, ';
         ContainerAclOperationNotSuccessfulErr: Label 'Could not %1 Container ACL.', Comment = '%1 = Get/Set ';
         ExpiryOperationNotSuccessfulErr: Label 'Could not set expiration on %1.', Comment = '%1 = Blob';
+        SnapshotOperationNotSuccessfulErr: Label 'Could not create snapshot for %1.', Comment = '%1 = Blob';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
 
@@ -1102,4 +1103,21 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, OperationNotSuccessfulErr);
     end;
     // #endregion (PUT) Set Blob Expiry
+
+    // #region (PUT) Snapshot Blob
+    /// <summary>
+    /// The Snapshot Blob operation creates a read-only snapshot of a blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/snapshot-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>        
+    procedure SnapshotBlob(var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Content: HttpContent;
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::SnapshotBlob);
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(SnapshotOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Snapshot Blob
 }
