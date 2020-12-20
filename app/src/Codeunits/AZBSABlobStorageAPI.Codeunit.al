@@ -170,7 +170,7 @@ codeunit 89000 "AZBSA Blob Storage API"
     /// Uploads (PUT) a File to a Container (with File Selection Dialog)
     /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-blob
     /// </summary>
-    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>    
+    /// <param name="RequestObject">A Request Object containing the necessary para#meters for the request.</param>    
     procedure UploadBlobIntoContainerUI(var RequestObject: Codeunit "AZBSA Request Object")
     var
         Filename: Text;
@@ -237,7 +237,37 @@ codeunit 89000 "AZBSA Blob Storage API"
 
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(UploadBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
     end;
-    // #endregion
+
+    procedure PutBlobPageBlobTextPlain(var RequestObject: Codeunit "AZBSA Request Object"; PageSize: Integer)
+    begin
+        PutBlobPageBlob(RequestObject, PageSize, 'text/plain; charset=UTF-8');
+    end;
+
+    procedure PutBlobPageBlob(var RequestObject: Codeunit "AZBSA Request Object"; PageSize: Integer; ContentType: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::PutBlob);
+        WebRequestHelper.AddBlobPutPageBlobContentHeaders(RequestObject, PageSize, ContentType);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(UploadBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
+    end;
+
+    procedure PutBlobAppendBlobTextPlain(var RequestObject: Codeunit "AZBSA Request Object")
+    begin
+        PutBlobAppendBlob(RequestObject, 'text/plain; charset=UTF-8');
+    end;
+
+    procedure PutBlobAppendBlob(var RequestObject: Codeunit "AZBSA Request Object"; ContentType: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::PutBlob);
+        WebRequestHelper.AddBlobPutAppendBlobContentHeaders(RequestObject, ContentType);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(UploadBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
+    end;
+    // #endregion (PUT) Upload Blob into Container
 
     // #region (GET) Get Blob from Container
     /// <summary>
