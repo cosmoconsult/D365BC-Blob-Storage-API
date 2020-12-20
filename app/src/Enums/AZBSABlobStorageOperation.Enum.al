@@ -103,6 +103,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Snapshot Blob';
     }
+    value(33; UndeleteBlob)
+    {
+        Caption = 'Undelete Blob';
+    }
     value(40; GetBlobServiceProperties)
     {
         Caption = 'Get Blob Service Properties';
