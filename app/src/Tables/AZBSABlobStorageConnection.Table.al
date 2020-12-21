@@ -141,9 +141,10 @@ table 89000 "AZBSA Blob Storage Connection"
     var
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
+        FormatHelper: Codeunit "AZBSA Format Helper";
         BlobName: Text;
     begin
-        BlobName := CreateRandomBlobname(0);
+        BlobName := FormatHelper.CreateRandomBlobname(0);
         RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
         RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName, BlobName);
         RequestObject.SetApiVersion(Rec."API Version");
@@ -154,31 +155,14 @@ table 89000 "AZBSA Blob Storage Connection"
     var
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
+        FormatHelper: Codeunit "AZBSA Format Helper";
         BlobName: Text;
     begin
-        BlobName := CreateRandomBlobname(0);
+        BlobName := FormatHelper.CreateRandomBlobname(0);
         RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
         RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName, BlobName);
         RequestObject.SetApiVersion(Rec."API Version");
         API.PutBlobAppendBlobTextPlain(RequestObject);
-    end;
-
-    local procedure CreateRandomBlobname(MaxLength: Integer): Text
-    var
-        Blobname: Text;
-        AsciiChar: Char;
-        RandInt: Integer;
-    begin
-        if MaxLength = 0 then
-            MaxLength := Random(30);
-        Randomize();
-        while StrLen(Blobname) <= MaxLength do begin
-            RandInt := Random(122);
-            AsciiChar := RandInt;
-            if Format(AsciiChar) in ['A' .. 'Z', 'a' .. 'z', '0' .. '9'] then
-                Blobname += Format(AsciiChar);
-        end;
-        exit(Blobname);
     end;
 
     procedure CreateSourceContainer()

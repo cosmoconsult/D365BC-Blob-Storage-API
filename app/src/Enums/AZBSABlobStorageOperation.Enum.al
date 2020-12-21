@@ -107,6 +107,10 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Undelete Blob';
     }
+    value(34; AppendBlock)
+    {
+        Caption = 'Append Block';
+    }
     value(40; GetBlobServiceProperties)
     {
         Caption = 'Get Blob Service Properties';

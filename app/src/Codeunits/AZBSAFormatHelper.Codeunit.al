@@ -209,4 +209,22 @@ codeunit 89003 "AZBSA Format Helper"
         GlobalLanguage(CurrLanguageId);
         exit(FormattedText);
     end;
+
+    procedure CreateRandomBlobname(MaxLength: Integer): Text
+    var
+        Blobname: Text;
+        AsciiChar: Char;
+        RandInt: Integer;
+    begin
+        if MaxLength = 0 then
+            MaxLength := Random(30);
+        Randomize();
+        while StrLen(Blobname) <= MaxLength do begin
+            RandInt := Random(122);
+            AsciiChar := RandInt;
+            if Format(AsciiChar) in ['A' .. 'Z', 'a' .. 'z', '0' .. '9'] then
+                Blobname += Format(AsciiChar);
+        end;
+        exit(Blobname);
+    end;
 }

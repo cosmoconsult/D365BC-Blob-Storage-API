@@ -269,6 +269,92 @@ codeunit 89000 "AZBSA Blob Storage API"
     end;
     // #endregion (PUT) Upload Blob into Container
 
+    // #region (PUT) Append Block
+    /// <summary>
+    /// The Append Block operation commits a new block of data to the end of an existing append blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/append-block
+    /// Uses 'text/plain; charset=UTF-8' as Content-Type
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="ContentAsText">Text-variable containing the content that should be added to the Blob</param>
+    procedure AppendBlockText(var RequestObject: Codeunit "AZBSA Request Object"; ContentAsText: Text)
+    begin
+        AppendBlockText(RequestObject, ContentAsText, 'text/plain; charset=UTF-8');
+    end;
+
+    /// <summary>
+    /// The Append Block operation commits a new block of data to the end of an existing append blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/append-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="ContentAsText">Text-variable containing the content that should be added to the Blob</param>
+    /// <param name="ContentType">Value for Content-Type HttpHeader (e.g. 'text/plain; charset=UTF-8')</param>
+    procedure AppendBlockText(var RequestObject: Codeunit "AZBSA Request Object"; ContentAsText: Text; ContentType: Text)
+    begin
+        AppendBlock(RequestObject, ContentType, ContentAsText);
+    end;
+
+    /// <summary>
+    /// The Append Block operation commits a new block of data to the end of an existing append blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/append-block
+    /// Uses 'application/octet-stream' as Content-Type
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="ContentAsStream">InStream containing the content that should be added to the Blob</param>
+    procedure AppendBlockStream(var RequestObject: Codeunit "AZBSA Request Object"; ContentAsStream: InStream)
+    begin
+        AppendBlockStream(RequestObject, ContentAsStream, 'application/octet-stream');
+    end;
+
+    /// <summary>
+    /// The Append Block operation commits a new block of data to the end of an existing append blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/append-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="ContentAsStream">InStream containing the content that should be added to the Blob</param>
+    /// <param name="ContentType">Value for Content-Type HttpHeader (e.g. 'text/plain; charset=UTF-8')</param>
+    procedure AppendBlockStream(var RequestObject: Codeunit "AZBSA Request Object"; ContentAsStream: InStream; ContentType: Text)
+    begin
+        AppendBlock(RequestObject, ContentType, ContentAsStream);
+    end;
+
+    /// <summary>
+    /// The Append Block operation commits a new block of data to the end of an existing append blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/append-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="ContentType">Value for Content-Type HttpHeader (e.g. 'text/plain; charset=UTF-8')</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the Blob</param>
+    procedure AppendBlock(var RequestObject: Codeunit "AZBSA Request Object"; ContentType: Text; SourceContent: Variant)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+        Headers: HttpHeaders;
+        SourceStream: InStream;
+        SourceText: Text;
+    begin
+        RequestObject.SetOperation(Operation::AppendBlock);
+        case true of
+            SourceContent.IsInStream():
+                begin
+                    SourceStream := SourceContent;
+                    WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceStream);
+                end;
+            SourceContent.IsText():
+                begin
+                    SourceText := SourceContent;
+                    WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceText);
+                end;
+        end;
+        Content.GetHeaders(Headers);
+        RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(UploadBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
+    end;
+    // #endregion (PUT) Append Block
+
     // #region (GET) Get Blob from Container
     /// <summary>
     /// Downloads (GET) a Blob as a File from a Container; shows a Lookup of existing Blobs to select from
