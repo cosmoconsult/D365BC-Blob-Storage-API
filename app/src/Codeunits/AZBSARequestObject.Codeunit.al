@@ -357,6 +357,15 @@ codeunit 89001 "AZBSA Request Object"
         Headers.Add("Key", "Value");
     end;
 
+    procedure RemoveHeader(var Headers: HttpHeaders; "Key": Text)
+    var
+    begin
+        if HeaderValues.ContainsKey("Key") then
+            HeaderValues.Remove("Key");
+        if Headers.Contains("Key") then
+            Headers.Remove("Key");
+    end;
+
     procedure ClearHeaders()
     begin
         Clear(HeaderValues);

@@ -290,6 +290,18 @@ page 89003 "AZBSA Container Contents"
                     UndeleteBlob(GlobalLastDeleteBlobName);
                 end;
             }
+            action(AppendBlockAction)
+            {
+                Caption = 'Append Block';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    AppendBlock(Rec.Name);
+                end;
+            }
         }
     }
     var
@@ -501,5 +513,14 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.UndeleteBlob(RequestObject);
+    end;
+
+    local procedure AppendBlock(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.AppendBlockText(RequestObject, 'This is some sample text to append');
     end;
 }
