@@ -28,6 +28,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         SnapshotOperationNotSuccessfulErr: Label 'Could not create snapshot for %1.', Comment = '%1 = Blob';
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
+        BlobTierOperationNotSuccessfulErr: Label 'Could not set tier %1 on %2.', Comment = '%1 = Tier; %2 = Blob';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1252,4 +1253,22 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(SnapshotOperationNotSuccessfulErr, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Snapshot Blob
+
+    // #region (PUT) Set Blob Tier
+    /// <summary>
+    /// The Set Blob Tier operation sets the access tier on a blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-tier
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="BlobAccessTier">The Access Tier the blob should be set to.</param>
+    procedure SetBlobTier(var RequestObject: Codeunit "AZBSA Request Object"; BlobAccessTier: Enum "AZBSA Blob Access Tier")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::SetBlobTier);
+        RequestObject.SetBlobAccessTierHeader(BlobAccessTier);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(BlobTierOperationNotSuccessfulErr, BlobAccessTier, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Set Blob Tier
 }

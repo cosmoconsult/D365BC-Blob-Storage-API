@@ -335,6 +335,11 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader('x-ms-expiry-time', FormatHelper.GetRfc1123DateTime(("Value"))); // Either an RFC 1123 datetime or miliseconds-value
     end;
 
+    procedure SetBlobAccessTierHeader("Value": Enum "AZBSA Blob Access Tier")
+    begin
+        AddOptionalHeader('x-ms-access-tier', Format("Value"));
+    end;
+
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
     begin
         HeaderValues := NewHeaderValues;
