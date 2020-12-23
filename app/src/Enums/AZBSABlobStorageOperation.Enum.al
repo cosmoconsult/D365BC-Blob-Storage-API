@@ -135,4 +135,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Set Blob Expiry';
     }
+    value(53; SetBlobTier)
+    {
+        Caption = 'Set Blob Tier';
+    }
 }
