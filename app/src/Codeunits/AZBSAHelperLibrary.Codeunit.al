@@ -33,6 +33,29 @@ codeunit 89002 "AZBSA Helper Library"
     end;
     // #endregion
 
+    procedure PageRangesResultToDictionairy(Document: XmlDocument; var PageRanges: Dictionary of [Integer, Integer])
+    var
+        NodeList: XmlNodeList;
+        Node: XmlNode;
+        StartRange: Integer;
+        EndRange: Integer;
+    begin
+        NodeList := CreatePageRangesNodeListFromResponse(Document);
+
+        if NodeList.Count = 0 then
+            exit;
+        foreach Node in NodeList do begin
+            Evaluate(StartRange, GetValueFromNode(Node, 'Start'));
+            Evaluate(EndRange, GetValueFromNode(Node, 'End'));
+            PageRanges.Add(StartRange, EndRange);
+        end;
+    end;
+
+    procedure CreatePageRangesNodeListFromResponse(Document: XmlDocument): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(Document, '/*/PageRange'));
+    end;
+
     // #region Blob-specific Helper
     procedure CreateBlobNodeListFromResponse(ResponseAsText: Text): XmlNodeList
     begin
@@ -113,6 +136,16 @@ codeunit 89002 "AZBSA Helper Library"
         exit(NodeList);
     end;
 
+    local procedure CreateXPathNodeListFromResponse(Document: XmlDocument; XPath: Text): XmlNodeList
+    var
+        RootNode: XmlElement;
+        NodeList: XmlNodeList;
+    begin
+        Document.GetRoot(RootNode);
+        RootNode.SelectNodes(XPath, NodeList);
+        exit(NodeList);
+    end;
+
     procedure GetValueFromNode(Node: XmlNode; XPath: Text): Text
     var
         Node2: XmlNode;
@@ -128,7 +161,7 @@ codeunit 89002 "AZBSA Helper Library"
         Node: XmlNode;
     begin
         if not ContainerContent.IsTemporary() then
-            Error('');
+            Error(''); // TODO: Add error message
         ContainerContent.DeleteAll();
 
         if NodeList.Count = 0 then
@@ -142,7 +175,7 @@ codeunit 89002 "AZBSA Helper Library"
         Node: XmlNode;
     begin
         if not Container.IsTemporary() then
-            Error('');
+            Error(''); // TODO: Add error message
         Container.DeleteAll();
 
         if NodeList.Count = 0 then

@@ -68,7 +68,7 @@ codeunit 89006 "AZBSA URI Helper"
                               Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
                               Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
                               Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
-                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage]) then
+                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -81,7 +81,7 @@ codeunit 89006 "AZBSA URI Helper"
         if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::LeaseBlob,
                               Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
                               Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
-                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage]) then
+                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -133,6 +133,7 @@ codeunit 89006 "AZBSA URI Helper"
         AppendBlockExtensionLbl: Label 'appendblock';
         TierExtensionLbl: Label 'tier';
         PageExtensionLbl: Label 'page';
+        PageListExtensionLbl: Label 'pagelist';
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
         case Operation of
@@ -166,6 +167,8 @@ codeunit 89006 "AZBSA URI Helper"
                 CompValue := TierExtensionLbl;
             Operation::PutPage:
                 CompValue := PageExtensionLbl;
+            Operation::GetPageRanges:
+                CompValue := PageListExtensionLbl;
         end;
         if CompValue = '' then
             exit;

@@ -314,6 +314,19 @@ page 89003 "AZBSA Container Contents"
                     PutPageUpdate(Rec.Name);
                 end;
             }
+
+            action(GetPageRangeseAction)
+            {
+                Caption = 'Get Page Ranges';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    GetPageRanges(Rec.Name);
+                end;
+            }
         }
     }
     var
@@ -546,5 +559,15 @@ page 89003 "AZBSA Container Contents"
         SampleText := SampleText.PadRight(512, '.');
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.PutPageUpdate(RequestObject, 0, 511, SampleText);
+    end;
+
+    local procedure GetPageRanges(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        PageRanges: Dictionary of [Integer, Integer];
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.GetPageRanges(RequestObject, PageRanges);
     end;
 }

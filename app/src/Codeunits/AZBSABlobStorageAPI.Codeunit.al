@@ -1346,4 +1346,39 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(BlobTierOperationNotSuccessfulErr, '', RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Put Page
+
+    // #region (GET) Get Page Ranges
+    /// <summary>
+    /// The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-page-ranges
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="PageRanges">A Dictionairy containing the result in structured form.</param>
+    procedure GetPageRanges(var RequestObject: Codeunit "AZBSA Request Object"; var PageRanges: Dictionary of [Integer, Integer])
+    var
+        HelperLibrary: Codeunit "AZBSA Helper Library";
+        Document: XmlDocument;
+    begin
+        Document := GetPageRanges(RequestObject);
+        HelperLibrary.PageRangesResultToDictionairy(Document, PageRanges);
+    end;
+
+    /// <summary>
+    /// The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-page-ranges
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <returns>XmlDocument containing the Page ranges</returns>
+    procedure GetPageRanges(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetPageRanges);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Page Ranges
 }

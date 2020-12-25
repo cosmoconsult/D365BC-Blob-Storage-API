@@ -143,4 +143,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Put Page';
     }
+    value(56; GetPageRanges)
+    {
+        Caption = 'Get Page Ranges';
+    }
 }
