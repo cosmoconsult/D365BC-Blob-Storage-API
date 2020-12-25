@@ -87,6 +87,7 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
     var
         FormatHelper: Codeunit "AZBSA Format Helper";
         HeaderKey: Text;
+        HeaderValue: Text;
         CanonicalizedHeaders: Text;
     begin
         // "Headers" needs to be a sorted dictionary
@@ -94,7 +95,8 @@ codeunit 89005 "AZBSA Req. Auth. Access Key"
             if (HeaderKey.ToLower().StartsWith('x-ms-')) then begin
                 if CanonicalizedHeaders <> '' then
                     CanonicalizedHeaders += FormatHelper.GetNewLineCharacter();
-                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey.ToLower(), Headers.Get(HeaderKey))
+                HeaderValue := Headers.Get(HeaderKey); // for debugging
+                CanonicalizedHeaders += StrSubstNo(KeyValuePairLbl, HeaderKey.ToLower(), HeaderValue)
             end;
         exit(CanonicalizedHeaders);
     end;

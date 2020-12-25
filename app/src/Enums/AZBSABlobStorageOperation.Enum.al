@@ -139,4 +139,16 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Set Blob Tier';
     }
+    value(54; PutPage)
+    {
+        Caption = 'Put Page';
+    }
+    value(56; GetPageRanges)
+    {
+        Caption = 'Get Page Ranges';
+    }
+    value(57; IncrementalCopyBlob)
+    {
+        Caption = 'Incremental Copy Blob';
+    }
 }

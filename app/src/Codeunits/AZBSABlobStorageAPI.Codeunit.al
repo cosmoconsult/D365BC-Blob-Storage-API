@@ -29,6 +29,8 @@ codeunit 89000 "AZBSA Blob Storage API"
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
         BlobTierOperationNotSuccessfulErr: Label 'Could not set tier %1 on %2.', Comment = '%1 = Tier; %2 = Blob';
+        PutPageOperationNotSuccessfulErr: Label 'Could not put page on %1.', Comment = '%1 = Blob';
+        IncrementalCopyOperationNotSuccessfulErr: Label 'Could not copy from %1 to %2.', Comment = '%1 = Source; %2 = Destination';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -349,6 +351,7 @@ codeunit 89000 "AZBSA Blob Storage API"
                 end;
         end;
         Content.GetHeaders(Headers);
+        // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
         RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
         RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
 
@@ -1271,4 +1274,131 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, StrSubstNo(BlobTierOperationNotSuccessfulErr, BlobAccessTier, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Set Blob Tier
+
+    // #region (PUT) Put Page
+    /// <summary>
+    /// The Put Page operation writes a range of pages to a page blob.
+    /// 'Update' will add the specified content to the defined range
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be written as a page</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    procedure PutPageUpdate(var RequestObject: Codeunit "AZBSA Request Object"; StartRange: Integer; EndRange: Integer; SourceContent: Variant)
+    var
+        PageWriteOption: Enum "AZBSA Page Write Option";
+    begin
+        PutPage(RequestObject, StartRange, EndRange, SourceContent, PageWriteOption::Update);
+    end;
+
+    /// <summary>
+    /// The Put Page operation writes a range of pages to a page blob.
+    /// 'Clear' will empty the defined range
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be cleared</param>    
+    procedure PutPageClear(var RequestObject: Codeunit "AZBSA Request Object"; StartRange: Integer; EndRange: Integer)
+    var
+        PageWriteOption: Enum "AZBSA Page Write Option";
+    begin
+        PutPage(RequestObject, StartRange, EndRange, '', PageWriteOption::Clear);
+    end;
+
+    /// <summary>
+    /// The Put Page operation writes a range of pages to a page blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be written as a page</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    /// <param name="PageWriteOption">Either 'update' or 'clear'; defines if content is added to or cleared from a page</param>
+    procedure PutPage(var RequestObject: Codeunit "AZBSA Request Object"; StartRange: Integer; EndRange: Integer; SourceContent: Variant; PageWriteOption: Enum "AZBSA Page Write Option")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+        Headers: HttpHeaders;
+        SourceStream: InStream;
+        SourceText: Text;
+    begin
+        RequestObject.SetOperation(Operation::PutPage);
+        RequestObject.SetPageWriteOptionHeader(PageWriteOption);
+        RequestObject.SetRangeHeader(StartRange, EndRange);
+        if PageWriteOption <> PageWriteOption::Clear then
+            case true of
+                SourceContent.IsInStream():
+                    begin
+                        SourceStream := SourceContent;
+                        WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceStream);
+                    end;
+                SourceContent.IsText():
+                    begin
+                        SourceText := SourceContent;
+                        WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceText);
+                    end;
+            end;
+        Content.GetHeaders(Headers);
+        // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
+        RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutPageOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Page
+
+    // #region (GET) Get Page Ranges
+    /// <summary>
+    /// The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-page-ranges
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="PageRanges">A Dictionairy containing the result in structured form.</param>
+    procedure GetPageRanges(var RequestObject: Codeunit "AZBSA Request Object"; var PageRanges: Dictionary of [Integer, Integer])
+    var
+        HelperLibrary: Codeunit "AZBSA Helper Library";
+        Document: XmlDocument;
+    begin
+        Document := GetPageRanges(RequestObject);
+        HelperLibrary.PageRangesResultToDictionairy(Document, PageRanges);
+    end;
+
+    /// <summary>
+    /// The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-page-ranges
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <returns>XmlDocument containing the Page ranges</returns>
+    procedure GetPageRanges(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetPageRanges);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Page Ranges
+
+    // #region (PUT) Incremental Copy Blob
+    /// <summary>
+    /// The Incremental Copy Blob operation copies a snapshot of the source page blob to a destination page blob. 
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/incremental-copy-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceUri">Specifies the name of the source page blob snapshot.</param>
+    procedure IncrementalCopyBlob(var RequestObject: Codeunit "AZBSA Request Object"; SourceUri: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::IncrementalCopyBlob);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(IncrementalCopyOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Incremental Copy Blob
 }
