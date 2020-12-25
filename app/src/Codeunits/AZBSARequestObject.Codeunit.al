@@ -525,6 +525,15 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalUriParameter('maxresults', Format("Value"));
     end;
 
+    /// <summary>
+    /// Identifiers the ID of a Block in BlockBlob
+    /// </summary>
+    /// <param name="Value">A valid Base64 string value that identifies the block. Prior to encoding, the string must be less than or equal to 64 bytes in size</param>
+    procedure SetBlockIdParameter("Value": Text)
+    begin
+        AddOptionalUriParameter('blockid', "Value");
+    end;
+
     // #endregion Optional Uri Parameters
 
     // #region Uri generation

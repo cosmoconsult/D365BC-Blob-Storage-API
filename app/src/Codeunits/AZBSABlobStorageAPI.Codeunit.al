@@ -31,6 +31,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         BlobTierOperationNotSuccessfulErr: Label 'Could not set tier %1 on %2.', Comment = '%1 = Tier; %2 = Blob';
         PutPageOperationNotSuccessfulErr: Label 'Could not put page on %1.', Comment = '%1 = Blob';
         IncrementalCopyOperationNotSuccessfulErr: Label 'Could not copy from %1 to %2.', Comment = '%1 = Source; %2 = Destination';
+        PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1401,4 +1402,57 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, StrSubstNo(IncrementalCopyOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Incremental Copy Blob
+
+    // #region (PUT) Put Block
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    /// <param name="BlockId">A valid Base64 string value that identifies the block</param>
+    procedure PutBlock(var RequestObject: Codeunit "AZBSA Request Object"; SourceContent: Variant)
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+    begin
+        PutBlock(RequestObject, SourceContent, FormatHelper.GetBase64BlockId());
+    end;
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    /// <param name="BlockId">A valid Base64 string value that identifies the block</param>
+    procedure PutBlock(var RequestObject: Codeunit "AZBSA Request Object"; SourceContent: Variant; BlockId: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+        Headers: HttpHeaders;
+        SourceStream: InStream;
+        SourceText: Text;
+    begin
+        RequestObject.SetOperation(Operation::PutBlock);
+        RequestObject.SetBlockIdParameter(BlockId);
+        case true of
+            SourceContent.IsInStream():
+                begin
+                    SourceStream := SourceContent;
+                    WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceStream);
+                end;
+            SourceContent.IsText():
+                begin
+                    SourceText := SourceContent;
+                    WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceText);
+                end;
+        end;
+        Content.GetHeaders(Headers);
+        // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
+        RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Block
 }

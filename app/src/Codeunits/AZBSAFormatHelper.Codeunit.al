@@ -41,6 +41,19 @@ codeunit 89003 "AZBSA Format Helper"
         exit("Value");
     end;
 
+    procedure GetBase64BlockId(): Text
+    begin
+        exit(GetBase64BlockId(RemoveCurlyBracketsFromString(Format(CreateGuid()))));
+    end;
+
+    procedure GetBase64BlockId(BlockId: Text): Text
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        Uri: Codeunit Uri;
+    begin
+        exit(Uri.EscapeDataString(Base64Convert.ToBase64(BlockId)));
+    end;
+
     procedure TagsDictionaryToXmlDocument(Tags: Dictionary of [Text, Text]): XmlDocument
     var
         Document: XmlDocument;

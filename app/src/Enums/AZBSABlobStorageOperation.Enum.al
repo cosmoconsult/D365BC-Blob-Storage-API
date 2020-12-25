@@ -151,4 +151,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Incremental Copy Blob';
     }
+    value(60; PutBlock)
+    {
+        Caption = 'Put Block';
+    }
 }
