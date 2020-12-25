@@ -340,6 +340,18 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader('x-ms-access-tier', Format("Value"));
     end;
 
+    procedure SetPageWriteOptionHeader("Value": Enum "AZBSA Page Write Option")
+    begin
+        AddOptionalHeader('x-ms-page-write', Format("Value"));
+    end;
+
+    procedure SetRangeHeader(BytesStartValue: Integer; BytesEndValue: Integer)
+    var
+        RangeBytesLbl: Label 'bytes=%1-%2', Comment = '%1 = Start Range; %2 = End Range';
+    begin
+        AddOptionalHeader('x-ms-range', StrSubstNo(RangeBytesLbl, BytesStartValue, BytesEndValue));
+    end;
+
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
     begin
         HeaderValues := NewHeaderValues;

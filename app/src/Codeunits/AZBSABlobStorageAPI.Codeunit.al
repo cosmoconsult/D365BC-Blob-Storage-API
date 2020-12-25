@@ -349,6 +349,7 @@ codeunit 89000 "AZBSA Blob Storage API"
                 end;
         end;
         Content.GetHeaders(Headers);
+        // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
         RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
         RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
 
@@ -1271,4 +1272,78 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, StrSubstNo(BlobTierOperationNotSuccessfulErr, BlobAccessTier, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Set Blob Tier
+
+    // #region (PUT) Put Page
+    /// <summary>
+    /// The Put Page operation writes a range of pages to a page blob.
+    /// 'Update' will add the specified content to the defined range
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be written as a page</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    procedure PutPageUpdate(var RequestObject: Codeunit "AZBSA Request Object"; StartRange: Integer; EndRange: Integer; SourceContent: Variant)
+    var
+        PageWriteOption: Enum "AZBSA Page Write Option";
+    begin
+        PutPage(RequestObject, StartRange, EndRange, SourceContent, PageWriteOption::Update);
+    end;
+
+    /// <summary>
+    /// The Put Page operation writes a range of pages to a page blob.
+    /// 'Clear' will empty the defined range
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be cleared</param>    
+    procedure PutPageClear(var RequestObject: Codeunit "AZBSA Request Object"; StartRange: Integer; EndRange: Integer)
+    var
+        PageWriteOption: Enum "AZBSA Page Write Option";
+    begin
+        PutPage(RequestObject, StartRange, EndRange, '', PageWriteOption::Clear);
+    end;
+
+    /// <summary>
+    /// The Put Page operation writes a range of pages to a page blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be written as a page</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    /// <param name="PageWriteOption">Either 'update' or 'clear'; defines if content is added to or cleared from a page</param>
+    procedure PutPage(var RequestObject: Codeunit "AZBSA Request Object"; StartRange: Integer; EndRange: Integer; SourceContent: Variant; PageWriteOption: Enum "AZBSA Page Write Option")
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+        Headers: HttpHeaders;
+        SourceStream: InStream;
+        SourceText: Text;
+    begin
+        RequestObject.SetOperation(Operation::PutPage);
+        RequestObject.SetPageWriteOptionHeader(PageWriteOption);
+        RequestObject.SetRangeHeader(StartRange, EndRange);
+        if PageWriteOption <> PageWriteOption::Clear then
+            case true of
+                SourceContent.IsInStream():
+                    begin
+                        SourceStream := SourceContent;
+                        WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceStream);
+                    end;
+                SourceContent.IsText():
+                    begin
+                        SourceText := SourceContent;
+                        WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceText);
+                    end;
+            end;
+        Content.GetHeaders(Headers);
+        // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
+        RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(BlobTierOperationNotSuccessfulErr, '', RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Page
 }

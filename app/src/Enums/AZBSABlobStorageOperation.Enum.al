@@ -139,4 +139,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Set Blob Tier';
     }
+    value(54; PutPage)
+    {
+        Caption = 'Put Page';
+    }
 }

@@ -302,6 +302,18 @@ page 89003 "AZBSA Container Contents"
                     AppendBlock(Rec.Name);
                 end;
             }
+            action(PutPageUpdateAction)
+            {
+                Caption = 'Put Page (Update)';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    PutPageUpdate(Rec.Name);
+                end;
+            }
         }
     }
     var
@@ -522,5 +534,17 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.AppendBlockText(RequestObject, 'This is some sample text to append');
+    end;
+
+    local procedure PutPageUpdate(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        SampleText: Text;
+    begin
+        SampleText := 'This is some sample text';
+        SampleText := SampleText.PadRight(512, '.');
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.PutPageUpdate(RequestObject, 0, 511, SampleText);
     end;
 }
