@@ -147,4 +147,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Get Page Ranges';
     }
+    value(57; IncrementalCopyBlob)
+    {
+        Caption = 'Incremental Copy Blob';
+    }
 }

@@ -174,6 +174,14 @@ codeunit 89001 "AZBSA Request Object"
         exit(ReturnValue);
     end;
 
+    procedure GetSnapshotFromResponseHeaders(): Text
+    var
+        ReturnValue: Text;
+    begin
+        ReturnValue := GetHeaderValueFromResponseHeaders('x-ms-snapshot');
+        exit(ReturnValue);
+    end;
+
     procedure GetHttpResponseStatusCode(): Integer
     begin
         exit(Response.HttpStatusCode());
@@ -405,6 +413,7 @@ codeunit 89001 "AZBSA Request Object"
     var
         SortTable: Record "AZBSA Temp. Sort Table";
         HeaderKey: Text;
+        HeaderValue: Text;
     begin
         Clear(NewHeaders);
         SortTable.Reset();
@@ -426,7 +435,13 @@ codeunit 89001 "AZBSA Request Object"
         if not SortTable.FindSet() then
             exit;
         repeat
-            NewHeaders.Add(SortTable."Key", SortTable.Value);
+            // It's possible that "Value" is greater than 250 characters,
+            // so get the original value from the Dictionary again
+            if HeaderValues.ContainsKey(SortTable."Key") then
+                HeaderValue := HeaderValues.Get(SortTable."Key")
+            else
+                HeaderValue := OptionalHeaderValues.Get(SortTable."Key");
+            NewHeaders.Add(SortTable."Key", HeaderValue);
         until SortTable.Next() = 0;
     end;
 
@@ -470,6 +485,15 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetSnapshotParameter("Value": DateTime)
     begin
         AddOptionalUriParameter('snapshot', Format("Value")); // TODO: Check DateTime-format for URI
+    end;
+
+    /// <summary>
+    /// The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. 
+    /// </summary>
+    /// <param name="Value">The DateTime identifying the Snapshot</param>
+    procedure SetSnapshotParameter("Value": Text)
+    begin
+        AddOptionalUriParameter('snapshot', "Value");
     end;
 
     /// <summary>

@@ -29,6 +29,8 @@ codeunit 89000 "AZBSA Blob Storage API"
         ParameterDurationErr: Label 'Duration can be -1 (for infinite) or between 15 and 60 seconds. Parameter Value: %1', Comment = '%1 = Current Value';
         ParameterMissingErr: Label 'You need to specify %1 (%2)', Comment = '%1 = Variable Name, %2 = Header Identifer';
         BlobTierOperationNotSuccessfulErr: Label 'Could not set tier %1 on %2.', Comment = '%1 = Tier; %2 = Blob';
+        PutPageOperationNotSuccessfulErr: Label 'Could not put page on %1.', Comment = '%1 = Blob';
+        IncrementalCopyOperationNotSuccessfulErr: Label 'Could not copy from %1 to %2.', Comment = '%1 = Source; %2 = Destination';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1343,7 +1345,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
         RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
         RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
-        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(BlobTierOperationNotSuccessfulErr, '', RequestObject.GetBlobName()));
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutPageOperationNotSuccessfulErr, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Put Page
 
@@ -1381,4 +1383,22 @@ codeunit 89000 "AZBSA Blob Storage API"
         exit(FormatHelper.TextToXmlDocument(ResponseText));
     end;
     // #endregion (GET) Get Page Ranges
+
+    // #region (PUT) Incremental Copy Blob
+    /// <summary>
+    /// The Incremental Copy Blob operation copies a snapshot of the source page blob to a destination page blob. 
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/incremental-copy-blob
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceUri">Specifies the name of the source page blob snapshot.</param>
+    procedure IncrementalCopyBlob(var RequestObject: Codeunit "AZBSA Request Object"; SourceUri: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::IncrementalCopyBlob);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        WebRequestHelper.PutOperation(RequestObject, StrSubstNo(IncrementalCopyOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Incremental Copy Blob
 }
