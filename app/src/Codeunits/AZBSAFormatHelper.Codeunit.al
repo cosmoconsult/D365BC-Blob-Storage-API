@@ -54,6 +54,45 @@ codeunit 89003 "AZBSA Format Helper"
         exit(Uri.EscapeDataString(Base64Convert.ToBase64(BlockId)));
     end;
 
+    procedure BlockDictionariesToBlockListDictionary(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]; var BlockList: Dictionary of [Text, Text]; OverwriteValueToLatest: Boolean)
+    var
+        Keys: List of [Text];
+        "Key": Text;
+        "Value": Text;
+    begin
+        "Value" := 'Committed';
+        If OverwriteValueToLatest then
+            "Value" := 'Latest';
+        Keys := CommitedBlocks.Keys;
+        foreach "Key" in Keys do
+            BlockList.Add("Key", "Value");
+
+        "Value" := 'Uncommitted';
+        If OverwriteValueToLatest then
+            "Value" := 'Latest';
+        Keys := UncommitedBlocks.Keys;
+        foreach "Key" in Keys do
+            BlockList.Add("Key", "Value");
+    end;
+
+    procedure BlockListDictionaryToXmlDocument(BlockList: Dictionary of [Text, Text]): XmlDocument
+    var
+        Document: XmlDocument;
+        BlockListNode: XmlNode;
+        BlockNode: XmlNode;
+        Keys: List of [Text];
+        "Key": Text;
+    begin
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="utf-8"?><BlockList></BlockList>', Document);
+        Document.SelectSingleNode('/BlockList', BlockListNode);
+        Keys := BlockList.Keys;
+        foreach "Key" in Keys do begin
+            BlockNode := XmlElement.Create(BlockList.Get("Key"), '', "Key").AsXmlNode(); // Dictionary value contains "Latest", "Committed" or "Uncommitted"
+            BlockListNode.AsXmlElement().Add(BlockNode);
+        end;
+        exit(Document);
+    end;
+
     procedure TagsDictionaryToXmlDocument(Tags: Dictionary of [Text, Text]): XmlDocument
     var
         Document: XmlDocument;

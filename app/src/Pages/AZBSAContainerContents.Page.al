@@ -353,6 +353,19 @@ page 89003 "AZBSA Container Contents"
                     GetBlockList(Rec.Name);
                 end;
             }
+
+            action(PutBlockListAction)
+            {
+                Caption = 'Put Block List';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    PutBlockList(Rec.Name);
+                end;
+            }
         }
     }
     var
@@ -616,5 +629,21 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.GetBlockList(RequestObject, BlockListType::all, CommitedBlocks, UncommitedBlocks);
+    end;
+
+    local procedure PutBlockList(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        BlockListType: Enum "AZBSA Block List Type";
+        CommitedBlocks: Dictionary of [Text, Integer];
+        UncommitedBlocks: Dictionary of [Text, Integer];
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.GetBlockList(RequestObject, BlockListType::all, CommitedBlocks, UncommitedBlocks);
+
+        Clear(RequestObject);
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.PutBlockList(RequestObject, CommitedBlocks, UncommitedBlocks);
     end;
 }

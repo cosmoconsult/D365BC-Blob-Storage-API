@@ -32,6 +32,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         PutPageOperationNotSuccessfulErr: Label 'Could not put page on %1.', Comment = '%1 = Blob';
         IncrementalCopyOperationNotSuccessfulErr: Label 'Could not copy from %1 to %2.', Comment = '%1 = Source; %2 = Destination';
         PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
+        PutBlockListOperationNotSuccessfulErr: Label 'Could not put block list on %1.', Comment = '%1 = Blob';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1507,4 +1508,39 @@ codeunit 89000 "AZBSA Blob Storage API"
         exit(FormatHelper.TextToXmlDocument(ResponseText));
     end;
     // #endregion (GET) Get Block List
+
+    // #region (PUT) Put Block List
+    /// <summary>
+    /// The Put Block List operation writes a blob by specifying the list of block IDs that make up the blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks that should be put to the Blob</param>
+    /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks that should be put to the Blob</param>
+    procedure PutBlockList(var RequestObject: Codeunit "AZBSA Request Object"; CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer])
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        BlockList: Dictionary of [Text, Text];
+        BlockListAsXml: XmlDocument;
+    begin
+        FormatHelper.BlockDictionariesToBlockListDictionary(CommitedBlocks, UncommitedBlocks, BlockList, false);
+        BlockListAsXml := FormatHelper.BlockListDictionaryToXmlDocument(BlockList);
+        PutBlockList(RequestObject, BlockListAsXml);
+    end;
+    /// <summary>
+    /// The Put Block List operation writes a blob by specifying the list of block IDs that make up the blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    procedure PutBlockList(var RequestObject: Codeunit "AZBSA Request Object"; BlockList: XmlDocument)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::PutBlockList);
+        WebRequestHelper.AddBlockListContent(Content, RequestObject, BlockList);
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockListOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Block List
 }
