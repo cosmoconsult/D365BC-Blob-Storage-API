@@ -25,7 +25,7 @@ enum 89003 "AZBSA API Version"
     }
     value(4; "2018-11-09")
     {
-        Caption = '2018-03-28';
+        Caption = '2018-11-09';
     }
     value(5; "2019-02-02")
     {
@@ -33,7 +33,7 @@ enum 89003 "AZBSA API Version"
     }
     value(6; "2019-07-07")
     {
-        Caption = '2017-07-07';
+        Caption = '2019-07-07';
     }
     value(7; "2019-12-12")
     {

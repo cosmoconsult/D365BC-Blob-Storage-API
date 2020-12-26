@@ -235,4 +235,75 @@ codeunit 89002 "AZBSA Helper Library"
         exit(FldNo <> 0);
     end;
     // #endregion
+
+    // #region Version Comparision
+    procedure ApiVersionGreaterThan(CurrApiVersion: Enum "AZBSA API Version"; CompareApiVersion: Enum "AZBSA API Version"): Boolean
+    var
+        YearCurr: Integer;
+        MonthCurr: Integer;
+        DayCurr: Integer;
+        YearCompare: Integer;
+        MonthCompare: Integer;
+        DayCompare: Integer;
+    begin
+        GetApiVersionParts(CurrApiVersion, YearCurr, MonthCurr, DayCurr);
+        GetApiVersionParts(CompareApiVersion, YearCompare, MonthCompare, DayCompare);
+
+
+        if YearCurr > YearCompare then
+            exit(true);
+        if YearCurr < YearCompare then
+            exit(false);
+        // Being here means YearCurr = YearCompare
+        if MonthCurr > MonthCompare then
+            exit(true);
+        if MonthCurr < MonthCompare then
+            exit(false);
+        // Being here means MonthCurr = MonthCompare
+        if DayCurr > DayCompare then
+            exit(true);
+        if DayCurr < DayCompare then
+            exit(false);
+    end;
+
+    procedure ApiVersionLessThan(CurrApiVersion: Enum "AZBSA API Version"; CompareApiVersion: Enum "AZBSA API Version"): Boolean
+    var
+        YearCurr: Integer;
+        MonthCurr: Integer;
+        DayCurr: Integer;
+        YearCompare: Integer;
+        MonthCompare: Integer;
+        DayCompare: Integer;
+    begin
+        GetApiVersionParts(CurrApiVersion, YearCurr, MonthCurr, DayCurr);
+        GetApiVersionParts(CompareApiVersion, YearCompare, MonthCompare, DayCompare);
+
+
+        if YearCurr > YearCompare then
+            exit(false);
+        if YearCurr < YearCompare then
+            exit(true);
+        // Being here means YearCurr = YearCompare
+        if MonthCurr > MonthCompare then
+            exit(false);
+        if MonthCurr < MonthCompare then
+            exit(true);
+        // Being here means MonthCurr = MonthCompare
+        if DayCurr > DayCompare then
+            exit(false);
+        if DayCurr < DayCompare then
+            exit(true);
+    end;
+
+    local procedure GetApiVersionParts(ApiVersion: Enum "AZBSA API Version"; var Year: Integer; var Month: Integer; var Day: Integer)
+    var
+        VersionAsString: Text;
+    begin
+        // 2019-12-12
+        VersionAsString := Format(ApiVersion);
+        Evaluate(Year, VersionAsString.Substring(1, 4));
+        Evaluate(Month, VersionAsString.Substring(6, 2));
+        Evaluate(Day, VersionAsString.Substring(9, 2));
+    end;
+    // #endregion Version Comparision 
 }
