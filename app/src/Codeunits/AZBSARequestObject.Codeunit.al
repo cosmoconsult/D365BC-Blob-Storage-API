@@ -534,6 +534,15 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalUriParameter('blockid', "Value");
     end;
 
+    /// <summary>
+    /// Specifies whether to return the list of committed blocks, the list of uncommitted blocks, or both lists together.
+    /// </summary>
+    /// <param name="Value">Valid values are committed, uncommitted, or all</param>
+    procedure SetBlockListTypeParameter("Value": Enum "AZBSA Block List Type")
+    begin
+        AddOptionalUriParameter('blocklisttype', Format("Value"));
+    end;
+
     // #endregion Optional Uri Parameters
 
     // #region Uri generation

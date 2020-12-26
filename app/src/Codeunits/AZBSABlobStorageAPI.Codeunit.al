@@ -1455,4 +1455,56 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockOperationNotSuccessfulErr, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Put Block
+
+    // #region (GET) Get Block List
+    /// <summary>
+    /// The Get Block List operation retrieves the list of blocks that have been uploaded as part of a block blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="BlockListType">Specifies whether to return the list of committed blocks, the list of uncommitted blocks, or both lists together.</param>
+    /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks (BLockId and Size)</param>
+    /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks (BLockId and Size)</param>
+    procedure GetBlockList(var RequestObject: Codeunit "AZBSA Request Object"; BlockListType: Enum "AZBSA Block List Type"; var CommitedBlocks: Dictionary of [Text, Integer]; var UncommitedBlocks: Dictionary of [Text, Integer])
+    var
+        HelperLibrary: Codeunit "AZBSA Helper Library";
+        Document: XmlDocument;
+    begin
+        Document := GetBlockList(RequestObject, BlockListType);
+        HelperLibrary.BlockListResultToDictionary(Document, CommitedBlocks, UncommitedBlocks);
+    end;
+
+    /// <summary>
+    /// The Get Block List operation retrieves the list of blocks that have been uploaded as part of a block blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <returns>XmlDocument containing the Block List</returns>
+    procedure GetBlockList(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        BlockListType: Enum "AZBSA Block List Type";
+    begin
+        exit(GetBlockList(RequestObject, BlockListType::committed)); // default API value is "committed"
+    end;
+
+    /// <summary>
+    /// The Get Block List operation retrieves the list of blocks that have been uploaded as part of a block blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="BlockListType">Specifies whether to return the list of committed blocks, the list of uncommitted blocks, or both lists together.</param>
+    /// <returns>XmlDocument containing the Block List</returns>
+    procedure GetBlockList(var RequestObject: Codeunit "AZBSA Request Object"; BlockListType: Enum "AZBSA Block List Type"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlockList);
+        RequestObject.SetBlockListTypeParameter(BlockListType);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Block List
 }

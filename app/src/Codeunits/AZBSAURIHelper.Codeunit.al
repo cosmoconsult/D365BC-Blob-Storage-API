@@ -69,7 +69,7 @@ codeunit 89006 "AZBSA URI Helper"
                               Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
                               Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
                               Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
-                              Operation::PutBlock]) then
+                              Operation::PutBlock, Operation::GetBlockList]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -83,7 +83,7 @@ codeunit 89006 "AZBSA URI Helper"
                               Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
                               Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
                               Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
-                              Operation::PutBlock]) then
+                              Operation::PutBlock, Operation::GetBlockList]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -138,6 +138,7 @@ codeunit 89006 "AZBSA URI Helper"
         PageListExtensionLbl: Label 'pagelist';
         IncrementalCopyExtensionLbl: Label 'incrementalcopy';
         BlockExtensionLbl: Label 'block';
+        BlockListExtensionLbl: Label 'blocklist';
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
         case Operation of
@@ -177,6 +178,8 @@ codeunit 89006 "AZBSA URI Helper"
                 CompValue := IncrementalCopyExtensionLbl;
             Operation::PutBlock:
                 CompValue := BlockExtensionLbl;
+            Operation::GetBlockList:
+                CompValue := BlockListExtensionLbl;
         end;
         if CompValue = '' then
             exit;
