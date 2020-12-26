@@ -327,6 +327,45 @@ page 89003 "AZBSA Container Contents"
                     GetPageRanges(Rec.Name);
                 end;
             }
+
+            action(PutBlockAction)
+            {
+                Caption = 'Put Block';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    PutBlock(Rec.Name);
+                end;
+            }
+
+            action(GetBlockListAction)
+            {
+                Caption = 'Get Block List';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    GetBlockList(Rec.Name);
+                end;
+            }
+
+            action(PutBlockListAction)
+            {
+                Caption = 'Put Block List';
+                Image = ViewDetails;
+                ApplicationArea = All;
+                ToolTip = 'xxx';
+
+                trigger OnAction()
+                begin
+                    PutBlockList(Rec.Name);
+                end;
+            }
         }
     }
     var
@@ -569,5 +608,42 @@ page 89003 "AZBSA Container Contents"
     begin
         InitializeRequestObjectFromOriginal(RequestObject, BlobName);
         API.GetPageRanges(RequestObject, PageRanges);
+    end;
+
+    local procedure PutBlock(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.PutBlock(RequestObject, 'This is some sample text');
+    end;
+
+    local procedure GetBlockList(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        BlockListType: Enum "AZBSA Block List Type";
+        CommitedBlocks: Dictionary of [Text, Integer];
+        UncommitedBlocks: Dictionary of [Text, Integer];
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.GetBlockList(RequestObject, BlockListType::all, CommitedBlocks, UncommitedBlocks);
+    end;
+
+    local procedure PutBlockList(BlobName: Text)
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+        BlockListType: Enum "AZBSA Block List Type";
+        CommitedBlocks: Dictionary of [Text, Integer];
+        UncommitedBlocks: Dictionary of [Text, Integer];
+    begin
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.GetBlockList(RequestObject, BlockListType::all, CommitedBlocks, UncommitedBlocks);
+
+        Clear(RequestObject);
+        InitializeRequestObjectFromOriginal(RequestObject, BlobName);
+        API.PutBlockList(RequestObject, CommitedBlocks, UncommitedBlocks);
     end;
 }

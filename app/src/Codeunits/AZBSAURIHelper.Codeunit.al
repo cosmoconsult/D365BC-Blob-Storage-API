@@ -50,6 +50,8 @@ codeunit 89006 "AZBSA URI Helper"
         // e.g. https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>?comp=copy&coppyid=<Id>
         if Operation = Operation::AbortCopyBlob then
             FormatHelper.AppendToUri(ConstructedUrl, 'copyid', RetrieveFromOptionalUriParameters('copyid'));
+        if Operation in [Operation::Putblock, Operation::PutBlockFromURL] then
+            FormatHelper.AppendToUri(ConstructedUrl, 'blockid', RetrieveFromOptionalUriParameters('blockid'));
 
         AddOptionalUriParameters(ConstructedUrl);
 
@@ -68,7 +70,8 @@ codeunit 89006 "AZBSA URI Helper"
                               Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
                               Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
                               Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
-                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob]) then
+                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
+                              Operation::PutBlock, Operation::PutBlockFromURL, Operation::PutBlockList, Operation::GetBlockList]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -81,7 +84,8 @@ codeunit 89006 "AZBSA URI Helper"
         if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::LeaseBlob,
                               Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
                               Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
-                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob]) then
+                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
+                              Operation::PutBlock, Operation::PutBlockFromURL, Operation::PutBlockList, Operation::GetBlockList]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
             ConstructedUrl += '/';
@@ -135,6 +139,8 @@ codeunit 89006 "AZBSA URI Helper"
         PageExtensionLbl: Label 'page';
         PageListExtensionLbl: Label 'pagelist';
         IncrementalCopyExtensionLbl: Label 'incrementalcopy';
+        BlockExtensionLbl: Label 'block';
+        BlockListExtensionLbl: Label 'blocklist';
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
         case Operation of
@@ -172,6 +178,10 @@ codeunit 89006 "AZBSA URI Helper"
                 CompValue := PageListExtensionLbl;
             Operation::IncrementalCopyBlob:
                 CompValue := IncrementalCopyExtensionLbl;
+            Operation::PutBlock, Operation::PutBlockFromURL:
+                CompValue := BlockExtensionLbl;
+            Operation::GetBlockList, Operation::PutBlockList:
+                CompValue := BlockListExtensionLbl;
         end;
         if CompValue = '' then
             exit;
@@ -199,7 +209,7 @@ codeunit 89006 "AZBSA URI Helper"
             exit;
 
         foreach ParameterIdentifier in OptionalUriParameters.Keys do
-            if not (ParameterIdentifier in ['copyid']) then begin
+            if not (ParameterIdentifier in ['copyid', 'blockid']) then begin
                 OptionalUriParameters.Get(ParameterIdentifier, ParameterValue);
                 FormatHelper.AppendToUri(Uri, ParameterIdentifier, ParameterValue);
             end;
@@ -241,9 +251,8 @@ codeunit 89006 "AZBSA URI Helper"
                 end;
             Operation = Operation::FindBlobByTags:
                 if AuthType <> AuthType::SasToken then
-                    Error(OperationWorksOnlyWithAuthErr, Operation, AuthType);
+                    Error(OperationWorksOnlyWithAuthErr, Operation, AuthType::SharedKey);
         end;
     end;
     // #endregion Uri generation
-
 }

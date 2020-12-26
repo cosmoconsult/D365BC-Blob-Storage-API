@@ -228,6 +228,11 @@ codeunit 89004 "AZBSA Web Request Helper"
         AddXmlDocumentAsContent(Content, RequestObject, Document);
     end;
 
+    procedure AddBlockListContent(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    begin
+        AddXmlDocumentAsContent(Content, RequestObject, Document);
+    end;
+
     local procedure AddXmlDocumentAsContent(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
     var
         Headers: HttpHeaders;

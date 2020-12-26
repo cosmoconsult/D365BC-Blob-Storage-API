@@ -56,6 +56,42 @@ codeunit 89002 "AZBSA Helper Library"
         exit(CreateXPathNodeListFromResponse(Document, '/*/PageRange'));
     end;
 
+    procedure BlockListResultToDictionary(Document: XmlDocument; var CommitedBlocks: Dictionary of [Text, Integer]; var UncommitedBlocks: Dictionary of [Text, Integer])
+    var
+        NodeList: XmlNodeList;
+        Node: XmlNode;
+        NameValue: Text;
+        SizeValue: Integer;
+    begin
+        NodeList := CreateBlockListCommitedNodeListFromResponse(Document);
+
+        if NodeList.Count > 0 then
+            foreach Node in NodeList do begin
+                Evaluate(NameValue, GetValueFromNode(Node, 'Name'));
+                Evaluate(SizeValue, GetValueFromNode(Node, 'Size'));
+                CommitedBlocks.Add(NameValue, SizeValue);
+            end;
+
+        NodeList := CreateBlockListUncommitedNodeListFromResponse(Document);
+
+        if NodeList.Count > 0 then
+            foreach Node in NodeList do begin
+                Evaluate(NameValue, GetValueFromNode(Node, 'Name'));
+                Evaluate(SizeValue, GetValueFromNode(Node, 'Size'));
+                UncommitedBlocks.Add(NameValue, SizeValue);
+            end;
+    end;
+
+    procedure CreateBlockListCommitedNodeListFromResponse(Document: XmlDocument): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(Document, '/*/CommittedBlocks/Block'));
+    end;
+
+    procedure CreateBlockListUncommitedNodeListFromResponse(Document: XmlDocument): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(Document, '/*/UncommittedBlocks/Block'));
+    end;
+
     // #region Blob-specific Helper
     procedure CreateBlobNodeListFromResponse(ResponseAsText: Text): XmlNodeList
     begin

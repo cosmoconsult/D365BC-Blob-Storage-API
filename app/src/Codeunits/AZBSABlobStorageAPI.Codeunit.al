@@ -31,6 +31,9 @@ codeunit 89000 "AZBSA Blob Storage API"
         BlobTierOperationNotSuccessfulErr: Label 'Could not set tier %1 on %2.', Comment = '%1 = Tier; %2 = Blob';
         PutPageOperationNotSuccessfulErr: Label 'Could not put page on %1.', Comment = '%1 = Blob';
         IncrementalCopyOperationNotSuccessfulErr: Label 'Could not copy from %1 to %2.', Comment = '%1 = Source; %2 = Destination';
+        PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
+        PutBlockListOperationNotSuccessfulErr: Label 'Could not put block list on %1.', Comment = '%1 = Blob';
+        PutBlockFromUrlOperationNotSuccessfulErr: Label 'Could not put block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1401,4 +1404,166 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, StrSubstNo(IncrementalCopyOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Incremental Copy Blob
+
+    // #region (PUT) Put Block
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    /// <param name="BlockId">A valid Base64 string value that identifies the block</param>
+    procedure PutBlock(var RequestObject: Codeunit "AZBSA Request Object"; SourceContent: Variant)
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+    begin
+        PutBlock(RequestObject, SourceContent, FormatHelper.GetBase64BlockId());
+    end;
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceContent">Variant containing the content that should be added to the page</param>
+    /// <param name="BlockId">A valid Base64 string value that identifies the block</param>
+    procedure PutBlock(var RequestObject: Codeunit "AZBSA Request Object"; SourceContent: Variant; BlockId: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+        Headers: HttpHeaders;
+        SourceStream: InStream;
+        SourceText: Text;
+    begin
+        RequestObject.SetOperation(Operation::PutBlock);
+        RequestObject.SetBlockIdParameter(BlockId);
+        case true of
+            SourceContent.IsInStream():
+                begin
+                    SourceStream := SourceContent;
+                    WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceStream);
+                end;
+            SourceContent.IsText():
+                begin
+                    SourceText := SourceContent;
+                    WebRequestHelper.AddBlobPutBlockBlobContentHeaders(Content, RequestObject, SourceText);
+                end;
+        end;
+        Content.GetHeaders(Headers);
+        // TODO: Check if it would be better to create a helper-function, that allows adding Content without the unnecessary headers
+        RequestObject.RemoveHeader(Headers, 'x-ms-blob-type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+        RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added in AddBlobPutBlockBlobContentHeaders, needs to removed
+
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Block
+
+    // #region (GET) Get Block List
+    /// <summary>
+    /// The Get Block List operation retrieves the list of blocks that have been uploaded as part of a block blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="BlockListType">Specifies whether to return the list of committed blocks, the list of uncommitted blocks, or both lists together.</param>
+    /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks (BLockId and Size)</param>
+    /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks (BLockId and Size)</param>
+    procedure GetBlockList(var RequestObject: Codeunit "AZBSA Request Object"; BlockListType: Enum "AZBSA Block List Type"; var CommitedBlocks: Dictionary of [Text, Integer]; var UncommitedBlocks: Dictionary of [Text, Integer])
+    var
+        HelperLibrary: Codeunit "AZBSA Helper Library";
+        Document: XmlDocument;
+    begin
+        Document := GetBlockList(RequestObject, BlockListType);
+        HelperLibrary.BlockListResultToDictionary(Document, CommitedBlocks, UncommitedBlocks);
+    end;
+
+    /// <summary>
+    /// The Get Block List operation retrieves the list of blocks that have been uploaded as part of a block blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <returns>XmlDocument containing the Block List</returns>
+    procedure GetBlockList(var RequestObject: Codeunit "AZBSA Request Object"): XmlDocument
+    var
+        BlockListType: Enum "AZBSA Block List Type";
+    begin
+        exit(GetBlockList(RequestObject, BlockListType::committed)); // default API value is "committed"
+    end;
+
+    /// <summary>
+    /// The Get Block List operation retrieves the list of blocks that have been uploaded as part of a block blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="BlockListType">Specifies whether to return the list of committed blocks, the list of uncommitted blocks, or both lists together.</param>
+    /// <returns>XmlDocument containing the Block List</returns>
+    procedure GetBlockList(var RequestObject: Codeunit "AZBSA Request Object"; BlockListType: Enum "AZBSA Block List Type"): XmlDocument
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        ResponseText: Text;
+    begin
+        RequestObject.SetOperation(Operation::GetBlockList);
+        RequestObject.SetBlockListTypeParameter(BlockListType);
+        WebRequestHelper.GetResponseAsText(RequestObject, ResponseText); // might throw error
+        exit(FormatHelper.TextToXmlDocument(ResponseText));
+    end;
+    // #endregion (GET) Get Block List
+
+    // #region (PUT) Put Block List
+    /// <summary>
+    /// The Put Block List operation writes a blob by specifying the list of block IDs that make up the blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks that should be put to the Blob</param>
+    /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks that should be put to the Blob</param>
+    procedure PutBlockList(var RequestObject: Codeunit "AZBSA Request Object"; CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer])
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        BlockList: Dictionary of [Text, Text];
+        BlockListAsXml: XmlDocument;
+    begin
+        FormatHelper.BlockDictionariesToBlockListDictionary(CommitedBlocks, UncommitedBlocks, BlockList, false);
+        BlockListAsXml := FormatHelper.BlockListDictionaryToXmlDocument(BlockList);
+        PutBlockList(RequestObject, BlockListAsXml);
+    end;
+    /// <summary>
+    /// The Put Block List operation writes a blob by specifying the list of block IDs that make up the blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block-list
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    procedure PutBlockList(var RequestObject: Codeunit "AZBSA Request Object"; BlockList: XmlDocument)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::PutBlockList);
+        WebRequestHelper.AddBlockListContent(Content, RequestObject, BlockList);
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockListOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Block List
+
+    // #region (PUT) Put Block From URL
+    /// <summary>
+    /// The Put Block From URL operation creates a new block to be committed as part of a blob where the contents are read from a URL.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block-from-url
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceUri">Specifies the name of the source block blob.</param>
+    /// <param name="BlockId">Specifies the BlockId that should be put.</param>
+    procedure PutBlockFromURL(var RequestObject: Codeunit "AZBSA Request Object"; SourceUri: Text; BlockId: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::PutBlockFromURL);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        RequestObject.SetBlockIdParameter(BlockId);
+        RequestObject.AddHeader('Content-Length', '0');
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockFromUrlOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Block From URL
 }
