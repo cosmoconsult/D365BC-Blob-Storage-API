@@ -21,7 +21,6 @@ codeunit 89001 "AZBSA Request Object"
         HeaderValues: Dictionary of [Text, Text];
         OptionalHeaderValues: Dictionary of [Text, Text];
         OptionalUriParameters: Dictionary of [Text, Text];
-        //KeyValuePairLbl: Label '%1:%2', Comment = '%1 = Key; %2 = Value';
         Response: HttpResponseMessage;
         ResponseIsSet: Boolean;
 
@@ -90,7 +89,33 @@ codeunit 89001 "AZBSA Request Object"
     procedure SetOperation(NewOperation: Enum "AZBSA Blob Storage Operation")
     begin
         Operation := NewOperation;
-        // TODO: Add "case NewOperation of" validation, to make sure that the minimum parameters (StorageAccountName, ContainerName, etc) are set here
+        // Only API Versions after 2017-04-17 are considered
+        case Operation of
+            Operation::GetAccountInformation:
+                ValidateApiVersion(ApiVersion, ApiVersion::"2018-03-28", NewOperation, true);
+            Operation::SetBlobExpiry:
+                ValidateApiVersion(ApiVersion, ApiVersion::"2020-02-10", NewOperation, true);
+            Operation::UndeleteBlob:
+                ValidateApiVersion(ApiVersion, ApiVersion::"2017-07-29", NewOperation, true);
+            Operation::PutBlockFromURL:
+                ValidateApiVersion(ApiVersion, ApiVersion::"2018-03-28", NewOperation, true);
+        end
+    end;
+
+    local procedure ValidateApiVersion(CurrApiVersion: Enum "AZBSA API Version"; TargetApiVersion: Enum "AZBSA API Version"; CurrOperation: Enum "AZBSA Blob Storage Operation"; ThrowError: Boolean): Boolean
+    var
+        HelperLibrary: Codeunit "AZBSA Helper Library";
+        IncompatibleVersionsErr: Label 'Operation "%1" is only available after API Version %2, but you selected %3.', Comment = '%1 = Operation; %2 = Target API Version; %3 = Curr. API Version';
+    begin
+        if CurrApiVersion = TargetApiVersion then
+            exit(true);
+        if HelperLibrary.ApiVersionGreaterThan(CurrApiVersion, TargetApiVersion) then
+            exit(true);
+
+        if ThrowError then
+            Error(IncompatibleVersionsErr, CurrOperation, TargetApiVersion, CurrApiVersion);
+
+        exit(false);
     end;
 
     procedure GetOperation(): Enum "AZBSA Blob Storage Operation"
