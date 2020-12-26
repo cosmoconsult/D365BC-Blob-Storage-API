@@ -33,6 +33,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         IncrementalCopyOperationNotSuccessfulErr: Label 'Could not copy from %1 to %2.', Comment = '%1 = Source; %2 = Destination';
         PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
         PutBlockListOperationNotSuccessfulErr: Label 'Could not put block list on %1.', Comment = '%1 = Blob';
+        PutBlockFromUrlOperationNotSuccessfulErr: Label 'Could not put block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1543,4 +1544,26 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockListOperationNotSuccessfulErr, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Put Block List
+
+    // #region (PUT) Put Block From URL
+    /// <summary>
+    /// The Put Block From URL operation creates a new block to be committed as part of a blob where the contents are read from a URL.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-block-from-url
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceUri">Specifies the name of the source block blob.</param>
+    /// <param name="BlockId">Specifies the BlockId that should be put.</param>
+    procedure PutBlockFromURL(var RequestObject: Codeunit "AZBSA Request Object"; SourceUri: Text; BlockId: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::PutBlockFromURL);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        RequestObject.SetBlockIdParameter(BlockId);
+        RequestObject.AddHeader('Content-Length', '0');
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockFromUrlOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Block From URL
 }
