@@ -9,7 +9,7 @@ This App reproduces the [Azure Blob Storage REST API](https://docs.microsoft.com
 Contributions are welcome. Feel free to create a Pull Request. The current version might still be subject to refactoring, depending on requirements when adding new features.
 
 You should really check out the [wiki](https://github.com/cosmoconsult/D365BC-Blob-Storage-API/wiki). Besides others, there you'll find information to:
-* [API Coverage Status](https://github.com/cosmoconsult/D365BC-Blob-Storage-API/wiki/API-Coverage-Status) (![83%](https://progress-bar.dev/83) (35 out of 42))
+* [API Coverage Status](https://github.com/cosmoconsult/D365BC-Blob-Storage-API/wiki/API-Coverage-Status) (![92%](https://progress-bar.dev/92) (39 out of 42))
 * [Authorization Methods](https://github.com/cosmoconsult/D365BC-Blob-Storage-API/wiki/Authorization-Methods)
 * [Examples](https://github.com/cosmoconsult/D365BC-Blob-Storage-API/wiki/Examples-Overview)
 
