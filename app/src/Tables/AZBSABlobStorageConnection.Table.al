@@ -54,6 +54,18 @@ table 89000 "AZBSA Blob Storage Connection"
             Caption = 'API Version';
         }
 
+        field(7; "Tenant ID"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tenant ID';
+        }
+
+        field(8; "Client ID"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Client ID';
+        }
+
         field(10; "Source Container Name"; Text[50])
         {
             DataClassification = CustomerContent;
@@ -88,7 +100,7 @@ table 89000 "AZBSA Blob Storage Connection"
         if Rec."Authorization Type" <> Rec."Authorization Type"::"AAD (Client Credentials)" then
             RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret)
         else
-            RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret, '7bf19cb4-d973-4478-a414-c8f444e760ce', '277cc0cc-8c01-4acf-9805-4727724060d2');
+            RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret, Rec."Client ID", Rec."Tenant ID");
         RequestObject.InitializeRequest(NewStorageAccountName, NewContainerName, NewBlobName);
         RequestObject.SetApiVersion(Rec."API Version");
     end;
