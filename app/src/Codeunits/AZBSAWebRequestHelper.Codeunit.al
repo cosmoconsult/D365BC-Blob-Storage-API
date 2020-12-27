@@ -289,6 +289,8 @@ codeunit 89004 "AZBSA Web Request Helper"
         case RequestObject.GetAuthorizationType() of
             AuthType::SharedKey:
                 RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetSharedKeySignature(HttpRequestType));
+            AuthType::"AAD (Client Credentials)":
+                RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetAADBearerToken(HttpRequestType));
         end;
     end;
 
