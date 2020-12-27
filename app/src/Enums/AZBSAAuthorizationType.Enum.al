@@ -15,4 +15,8 @@ enum 89002 "AZBSA Authorization Type"
     {
         Caption = 'Shared Key';
     }
+    value(2; "AAD (Client Credentials)")
+    {
+        Caption = 'Azure AD (Client Credentials';
+    }
 }

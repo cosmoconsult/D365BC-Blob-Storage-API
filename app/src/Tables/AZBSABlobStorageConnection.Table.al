@@ -73,6 +73,25 @@ table 89000 "AZBSA Blob Storage Connection"
             Clustered = true;
         }
     }
+    local procedure InitializeRequestObject(var RequestObject: Codeunit "AZBSA Request Object"; NewStorageAccountName: Text)
+    begin
+        InitializeRequestObject(RequestObject, NewStorageAccountName, '', '');
+    end;
+
+    local procedure InitializeRequestObject(var RequestObject: Codeunit "AZBSA Request Object"; NewStorageAccountName: Text; NewContainerName: Text)
+    begin
+        InitializeRequestObject(RequestObject, NewStorageAccountName, NewContainerName, '');
+    end;
+
+    local procedure InitializeRequestObject(var RequestObject: Codeunit "AZBSA Request Object"; NewStorageAccountName: Text; NewContainerName: Text; NewBlobName: Text)
+    begin
+        if Rec."Authorization Type" <> Rec."Authorization Type"::"AAD (Client Credentials)" then
+            RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret)
+        else
+            RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret, '7bf19cb4-d973-4478-a414-c8f444e760ce', '277cc0cc-8c01-4acf-9805-4727724060d2');
+        RequestObject.InitializeRequest(NewStorageAccountName, NewContainerName, NewBlobName);
+        RequestObject.SetApiVersion(Rec."API Version");
+    end;
 
     procedure TestSetup(ForDestination: Boolean)
     begin
@@ -90,9 +109,17 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
         API.ListContainers(RequestObject);
+    end;
+
+    procedure GetUserDelegationKey()
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
+        Message(API.GetUserDelegationKey(RequestObject, CreateDateTime(CalcDate('<+5D>', Today), Time())));
     end;
 
     procedure ListContentSource()
@@ -110,9 +137,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
-        RequestObject.SetApiVersion(Rec."API Version");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.ListBlobs(RequestObject);
     end;
 
@@ -122,8 +147,7 @@ table 89000 "AZBSA Blob Storage Connection"
         SearchTags: Dictionary of [Text, Text];
     begin
         // Only as an example
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
         RequestObject.SetApiVersion(Rec."API Version");
         SearchTags.Add('DummyTagName', '= DummyTagValue');
         FindBlobsByTags(RequestObject, SearchTags);
@@ -145,9 +169,7 @@ table 89000 "AZBSA Blob Storage Connection"
         BlobName: Text;
     begin
         BlobName := FormatHelper.CreateRandomBlobname(0);
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName, BlobName);
-        RequestObject.SetApiVersion(Rec."API Version");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName, BlobName);
         API.PutBlobPageBlobTextPlain(RequestObject, 0);
     end;
 
@@ -159,9 +181,7 @@ table 89000 "AZBSA Blob Storage Connection"
         BlobName: Text;
     begin
         BlobName := FormatHelper.CreateRandomBlobname(0);
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName, BlobName);
-        RequestObject.SetApiVersion(Rec."API Version");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName, BlobName);
         API.PutBlobAppendBlobTextPlain(RequestObject);
     end;
 
@@ -180,8 +200,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.CreateContainer(RequestObject);
     end;
 
@@ -200,8 +219,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.DeleteContainer(RequestObject);
     end;
 
@@ -210,8 +228,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.UploadBlobIntoContainerUI(RequestObject);
     end;
 
@@ -220,8 +237,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.DownloadBlobAsFileWithSelect(RequestObject);
     end;
 
@@ -230,8 +246,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName, BlobName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName, BlobName);
         API.DownloadBlobAsFile(RequestObject);
     end;
 
@@ -250,8 +265,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.DeleteBlobFromContainerUI(RequestObject);
     end;
 
@@ -265,8 +279,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.ContainerLeaseAcquire(RequestObject, 15);
         GlobalLeaseId := RequestObject.GetHeaderValueFromResponseHeaders('x-ms-lease-id');
         Message('Initiated 15-second lease. Saved LeaseId to Global variable');
@@ -287,8 +300,7 @@ table 89000 "AZBSA Blob Storage Connection"
     begin
         if IsNullGuid(LeaseID) then
             Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.ContainerLeaseRelease(RequestObject, LeaseID);
         Clear(GlobalLeaseId);
     end;
@@ -308,8 +320,7 @@ table 89000 "AZBSA Blob Storage Connection"
     begin
         if IsNullGuid(LeaseID) then
             Error('You need to call "Acquire Lease" first (global variable "LeaseId" is not set)');
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.ContainerLeaseRenew(RequestObject, LeaseID);
     end;
 
@@ -318,8 +329,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
         Message(Format(API.GetBlobServiceProperties(RequestObject)));
     end;
 
@@ -330,12 +340,10 @@ table 89000 "AZBSA Blob Storage Connection"
         Document: XmlDocument;
     begin
         // Dummy-call; reads the current properties and calls the setter method with the result
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
         Document := API.GetBlobServiceProperties(RequestObject);
         Clear(RequestObject);
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
         API.SetBlobServiceProperties(RequestObject, Document);
     end;
 
@@ -349,8 +357,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.GetContainerMetadata(RequestObject);
     end;
 
@@ -364,8 +371,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         RequestObject.SetMetadataNameValueHeader('Dummy', 'DummyValue01');
         API.SetContainerMetadata(RequestObject);
     end;
@@ -380,8 +386,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.GetContainerACL(RequestObject);
     end;
 
@@ -397,12 +402,10 @@ table 89000 "AZBSA Blob Storage Connection"
         Document: XmlDocument;
     begin
         // Dummy call
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         Document := API.GetContainerACL(RequestObject);
         Clear(RequestObject);
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.SetContainerACL(RequestObject, Document);
     end;
 
@@ -416,8 +419,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", ContainerName);
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", ContainerName);
         API.GetContainerProperties(RequestObject);
     end;
 
@@ -426,9 +428,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", Rec."Source Container Name");
-        RequestObject.SetApiVersion(Rec."API Version");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", Rec."Source Container Name");
         API.GetAccountInformation(RequestObject);
     end;
 
@@ -437,9 +437,7 @@ table 89000 "AZBSA Blob Storage Connection"
         API: Codeunit "AZBSA Blob Storage API";
         RequestObject: Codeunit "AZBSA Request Object";
     begin
-        RequestObject.InitializeAuthorization(Rec."Authorization Type", Rec.Secret);
-        RequestObject.InitializeRequest(Rec."Storage Account Name", Rec."Source Container Name");
-        RequestObject.SetApiVersion(Rec."API Version");
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name", Rec."Source Container Name");
         Message(Format(API.GetBlobServiceStats(RequestObject)));
     end;
 

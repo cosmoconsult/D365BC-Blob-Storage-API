@@ -111,6 +111,8 @@ codeunit 89006 "AZBSA URI Helper"
                 RestType := AccountRestTypeLbl;
             Operation::GetBlobServiceProperties, Operation::SetBlobServiceProperties, Operation::GetBlobServiceStats:
                 RestType := ServiceRestTypeLbl;
+            Operation::GetUserDelegationKey:
+                RestType := ServiceRestTypeLbl;
         end;
         if RestType = '' then
             exit;
@@ -141,6 +143,7 @@ codeunit 89006 "AZBSA URI Helper"
         IncrementalCopyExtensionLbl: Label 'incrementalcopy';
         BlockExtensionLbl: Label 'block';
         BlockListExtensionLbl: Label 'blocklist';
+        UserDelegationKeyExtensionLbl: Label 'userdelegationkey';
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/?restype=account&comp=properties
         case Operation of
@@ -182,6 +185,8 @@ codeunit 89006 "AZBSA URI Helper"
                 CompValue := BlockExtensionLbl;
             Operation::GetBlockList, Operation::PutBlockList:
                 CompValue := BlockListExtensionLbl;
+            Operation::GetUserDelegationKey:
+                CompValue := UserDelegationKeyExtensionLbl;
         end;
         if CompValue = '' then
             exit;

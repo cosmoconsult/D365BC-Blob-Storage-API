@@ -136,6 +136,41 @@ codeunit 89004 "AZBSA Web Request Helper"
             Error(HttpResponseInfoErr, OperationNotSuccessfulErr, Response.HttpStatusCode, Response.ReasonPhrase);
     end;
     // #endregion DELETE-Request
+    // #region POST-Request
+    procedure PostOperation(var RequestObject: Codeunit "AZBSA Request Object"; OperationNotSuccessfulErr: Text)
+    var
+        Content: HttpContent;
+    begin
+        PostOperation(RequestObject, Content, OperationNotSuccessfulErr);
+    end;
+
+    procedure PostOperation(var RequestObject: Codeunit "AZBSA Request Object"; Content: HttpContent; OperationNotSuccessfulErr: Text)
+    var
+        Response: HttpResponseMessage;
+    begin
+        PostOperation(RequestObject, Content, Response, OperationNotSuccessfulErr);
+    end;
+
+    local procedure PostOperation(var RequestObject: Codeunit "AZBSA Request Object"; Content: HttpContent; var Response: HttpResponseMessage; OperationNotSuccessfulErr: Text)
+    var
+        Client: HttpClient;
+        HttpRequestType: Enum "Http Request Type";
+        RequestMsg: HttpRequestMessage;
+    begin
+        HandleHeaders(HttpRequestType::POST, Client, RequestObject);
+        // Prepare HttpRequestMessage
+        RequestMsg.Method(Format(HttpRequestType::POST));
+        if ContentSet(Content) or HandleContentHeaders(Content, RequestObject) then
+            RequestMsg.Content := Content;
+        RequestMsg.SetRequestUri(RequestObject.ConstructUri());
+
+        // Send Request    
+        Client.Send(RequestMsg, Response);
+        RequestObject.SetHttpResponse(Response);
+        if not Response.IsSuccessStatusCode then
+            Error(HttpResponseInfoErr, OperationNotSuccessfulErr, Response.HttpStatusCode, Response.ReasonPhrase);
+    end;
+    // #endregion POST-Request
 
     // #region HTTP Header Helper
     procedure AddBlobPutBlockBlobContentHeaders(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; var SourceStream: InStream)
@@ -233,6 +268,11 @@ codeunit 89004 "AZBSA Web Request Helper"
         AddXmlDocumentAsContent(Content, RequestObject, Document);
     end;
 
+    procedure AddUserDelegationRequestContent(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
+    begin
+        AddXmlDocumentAsContent(Content, RequestObject, Document);
+    end;
+
     local procedure AddXmlDocumentAsContent(var Content: HttpContent; var RequestObject: Codeunit "AZBSA Request Object"; Document: XmlDocument)
     var
         Headers: HttpHeaders;
@@ -289,6 +329,8 @@ codeunit 89004 "AZBSA Web Request Helper"
         case RequestObject.GetAuthorizationType() of
             AuthType::SharedKey:
                 RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetSharedKeySignature(HttpRequestType));
+            AuthType::"AAD (Client Credentials)":
+                RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetAADBearerToken(HttpRequestType));
         end;
     end;
 

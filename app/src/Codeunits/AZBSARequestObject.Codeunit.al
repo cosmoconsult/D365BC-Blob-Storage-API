@@ -14,6 +14,8 @@ codeunit 89001 "AZBSA Request Object"
         AuthType: Enum "AZBSA Authorization Type";
         ApiVersion: Enum "AZBSA API Version";
         Secret: Text;
+        ClientID: Text;
+        TenantId: Text;
         StorageAccountName: Text;
         ContainerName: Text;
         BlobName: Text;
@@ -53,6 +55,14 @@ codeunit 89001 "AZBSA Request Object"
     begin
         AuthType := NewAuthType;
         Secret := NewSecret;
+    end;
+
+    procedure InitializeAuthorization(NewAuthType: Enum "AZBSA Authorization Type"; NewSecret: Text; NewClientId: Text; NewTenantId: Text)
+    begin
+        AuthType := NewAuthType;
+        Secret := NewSecret;
+        ClientID := NewClientId;
+        TenantId := NewTenantId;
     end;
 
     // #region Set/Get Globals
@@ -581,7 +591,6 @@ codeunit 89001 "AZBSA Request Object"
     // #endregion Uri generation
 
     // #region Shared Key Signature Generation
-
     procedure GetSharedKeySignature(HttpRequestType: Enum "Http Request Type"): Text
     var
         ReqAuthAccessKey: Codeunit "AZBSA Req. Auth. Access Key";
@@ -589,6 +598,15 @@ codeunit 89001 "AZBSA Request Object"
         ReqAuthAccessKey.SetHeaderValues(HeaderValues);
         ReqAuthAccessKey.SetApiVersion(ApiVersion);
         exit(ReqAuthAccessKey.GetSharedKeySignature(HttpRequestType, StorageAccountName, ConstructUri(), Secret));
+    end;
+    // #endregion Shared Key Signature Generation
+
+    // #region AAD authentication
+    procedure GetAADBearerToken(HttpRequestType: Enum "Http Request Type"): Text
+    var
+        ReqAuthAzureAd: Codeunit "AZBSA Req. Auth Azure AD";
+    begin
+        exit(ReqAuthAzureAd.GetBearerTokenAuthentication(HttpRequestType, StorageAccountName, ConstructUri(), ClientID, Secret, TenantId));
     end;
     // #endregion Shared Key Signature Generation
 }

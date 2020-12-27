@@ -75,6 +75,33 @@ codeunit 89003 "AZBSA Format Helper"
             BlockList.Add("Key", "Value");
     end;
 
+    procedure CreateUserDelegationKeyBody(StartDateTime: DateTime; ExpiryDateTime: DateTime): XmlDocument
+    var
+        Document: XmlDocument;
+        KeyInfoNode: XmlNode;
+        ValueNode: XmlNode;
+    begin
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="utf-8"?><KeyInfo></KeyInfo>', Document);
+        Document.SelectSingleNode('/KeyInfo', KeyInfoNode);
+        if StartDateTime <> 0DT then begin
+            ValueNode := XmlElement.Create('Start', '', GetIso8601DateTime(StartDateTime)).AsXmlNode();
+            KeyInfoNode.AsXmlElement().Add(ValueNode);
+        end;
+        ValueNode := XmlElement.Create('Expiry', '', GetIso8601DateTime(ExpiryDateTime)).AsXmlNode();
+        KeyInfoNode.AsXmlElement().Add(ValueNode);
+        exit(Document);
+    end;
+
+    procedure GetUserDelegationKeyFromResponse(ResponseAsText: Text): Text
+    var
+        ResponseDocument: XmlDocument;
+        ValueNode: XmlNode;
+    begin
+        XmlDocument.ReadFrom(ResponseAsText, ResponseDocument);
+        ResponseDocument.SelectSingleNode('.//Value', ValueNode);
+        exit(ValueNode.AsXmlElement().InnerText);
+    end;
+
     procedure BlockListDictionaryToXmlDocument(BlockList: Dictionary of [Text, Text]): XmlDocument
     var
         Document: XmlDocument;
@@ -197,6 +224,17 @@ codeunit 89003 "AZBSA Format Helper"
     begin
         LF := 10;
         exit(Format(LF));
+    end;
+
+    procedure GetIso8601DateTime(MyDateTime: DateTime): Text
+    var
+        DateTimeAsXmlString: Text;
+    begin
+        MyDateTime := ConvertDateTimeToUtcDateTime(MyDateTime);
+        DateTimeAsXmlString := Format(MyDateTime, 0, 9); // Format as XML, e.g.: 2020-11-11T08:50:07.553Z
+        if DateTimeAsXmlString.Contains('.') then
+            DateTimeAsXmlString := DateTimeAsXmlString.Substring(1, DateTimeAsXmlString.LastIndexOf('.'));
+        exit(DateTimeAsXmlString);
     end;
 
     procedure GetRfc1123DateTime(): Text

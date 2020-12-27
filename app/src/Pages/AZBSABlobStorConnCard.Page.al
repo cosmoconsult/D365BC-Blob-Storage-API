@@ -149,6 +149,21 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                         Rec.ListContentTarget();
                     end;
                 }
+                action(GetUserDelegationKey)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Get User Delegation Key';
+                    Image = LaunchWeb;
+                    ToolTip = 'xxx';
+                    Promoted = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Category4;
+
+                    trigger OnAction();
+                    begin
+                        Rec.GetUserDelegationKey();
+                    end;
+                }
             }
             group(CreateContainers)
             {
