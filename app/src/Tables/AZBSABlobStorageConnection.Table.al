@@ -113,6 +113,15 @@ table 89000 "AZBSA Blob Storage Connection"
         API.ListContainers(RequestObject);
     end;
 
+    procedure GetUserDelegationKey()
+    var
+        API: Codeunit "AZBSA Blob Storage API";
+        RequestObject: Codeunit "AZBSA Request Object";
+    begin
+        InitializeRequestObject(RequestObject, Rec."Storage Account Name");
+        Message(API.GetUserDelegationKey(RequestObject, CreateDateTime(CalcDate('<+5D>', Today), Time())));
+    end;
+
     procedure ListContentSource()
     begin
         ListContentContainer(Rec."Source Container Name");

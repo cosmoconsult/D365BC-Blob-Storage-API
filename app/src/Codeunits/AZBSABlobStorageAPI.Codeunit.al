@@ -34,6 +34,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
         PutBlockListOperationNotSuccessfulErr: Label 'Could not put block list on %1.', Comment = '%1 = Blob';
         PutBlockFromUrlOperationNotSuccessfulErr: Label 'Could not put block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
+        GetUserDelegationKeyOperationNotSuccessfulErr: Label 'Could not get user delegation key.';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1566,4 +1567,39 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutBlockFromUrlOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
     end;
     // #endregion (PUT) Put Block From URL
+
+    // #region (POST) Get User Delegation Key
+    /// <summary>
+    /// The Get User Delegation Key operation gets a key that can be used to sign a user delegation SAS (shared access signature)
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-user-delegation-key
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="ExpiryDateTime">The expiry time of user delegation SAS, in ISO Date format. It must be a valid date and time within 7 days of the current time.</param>
+    procedure GetUserDelegationKey(var RequestObject: Codeunit "AZBSA Request Object"; ExpiryDateTime: DateTime): Text
+    begin
+        exit(GetUserDelegationKey(RequestObject, ExpiryDateTime, 0DT));
+    end;
+    /// <summary>
+    /// The Get User Delegation Key operation gets a key that can be used to sign a user delegation SAS (shared access signature)
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/get-user-delegation-key
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartDateTime">The start time for the user delegation SAS, in ISO Date format. It must be a valid date and time within 7 days of the current time</param>
+    /// <param name="ExpiryDateTime">The expiry time of user delegation SAS, in ISO Date format. It must be a valid date and time within 7 days of the current time.</param>
+    procedure GetUserDelegationKey(var RequestObject: Codeunit "AZBSA Request Object"; ExpiryDateTime: DateTime; StartDateTime: DateTime): Text
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+        Document: XmlDocument;
+    begin
+        // TODO: Think about adding a function with all details as return value (instead of only the key)
+        RequestObject.SetOperation(Operation::GetUserDelegationKey);
+        Document := FormatHelper.CreateUserDelegationKeyBody(StartDateTime, ExpiryDateTime);
+        WebRequestHelper.AddUserDelegationRequestContent(Content, RequestObject, Document);
+        WebRequestHelper.PostOperation(RequestObject, Content, GetUserDelegationKeyOperationNotSuccessfulErr);
+        exit(FormatHelper.GetUserDelegationKeyFromResponse(RequestObject.GetHttpResponseAsText()));
+    end;
+    // #endregion (POST) Get User Delegation Key
 }
