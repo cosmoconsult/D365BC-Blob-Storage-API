@@ -52,6 +52,16 @@ page 89001 "AZBSA Blob Stor. Conn. Card"
                     ApplicationArea = All;
                     ToolTip = 'Shared access signature Token or SharedKey';
                 }
+                field("Tenant ID"; Rec."Tenant ID")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Tenant ID';
+                }
+                field("Client ID"; Rec."Client ID")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Client ID or Application ID';
+                }
             }
             group(Container)
             {
