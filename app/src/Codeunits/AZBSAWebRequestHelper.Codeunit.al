@@ -172,6 +172,32 @@ codeunit 89004 "AZBSA Web Request Helper"
     end;
     // #endregion POST-Request
 
+    // #region OPTIONS-Request
+    procedure OptionsOperation(var RequestObject: Codeunit "AZBSA Request Object"; OperationNotSuccessfulErr: Text)
+    var
+        Response: HttpResponseMessage;
+    begin
+        OptionsOperation(RequestObject, Response, OperationNotSuccessfulErr);
+    end;
+
+    procedure OptionsOperation(var RequestObject: Codeunit "AZBSA Request Object"; var Response: HttpResponseMessage; OperationNotSuccessfulErr: Text)
+    var
+        Client: HttpClient;
+        RequestMsg: HttpRequestMessage;
+    begin
+        HandleHeaders('OPTIONS', Client, RequestObject);
+        // Prepare HttpRequestMessage
+        RequestMsg.Method('OPTIONS');
+        RequestMsg.SetRequestUri(RequestObject.ConstructUri());
+
+        // Send Request    
+        Client.Send(RequestMsg, Response);
+        RequestObject.SetHttpResponse(Response);
+        if not Response.IsSuccessStatusCode then
+            Error(HttpResponseInfoErr, OperationNotSuccessfulErr, Response.HttpStatusCode, Response.ReasonPhrase);
+    end;
+    // #endregion OPTIONS-Request
+
     // #region HTTP Header Helper
     procedure AddBlobPutBlockBlobContentHeaders(var Content: HttpContent; RequestObject: Codeunit "AZBSA Request Object"; var SourceStream: InStream)
     var
@@ -332,6 +358,25 @@ codeunit 89004 "AZBSA Web Request Helper"
             AuthType::"AAD (Client Credentials)":
                 RequestObject.AddHeader(Headers, 'Authorization', RequestObject.GetAADBearerToken(HttpRequestType));
         end;
+    end;
+
+    local procedure HandleHeaders(HttpRequestType: Text; var Client: HttpClient; var RequestObject: Codeunit "AZBSA Request Object")
+    var
+        Headers: HttpHeaders;
+        HeadersDictionary: Dictionary of [Text, Text];
+        HeaderKey: Text;
+    begin
+        // Only used right now for "OPTIONS"-request for Operation "PreflightBlobRequest"
+        // For this Operation only some headers are necessary
+        if HttpRequestType <> 'OPTIONS' then
+            Error('You should use this function only for  OPTIONS-requests');
+
+        Headers := Client.DefaultRequestHeaders;
+        RequestObject.GetSortedHeadersDictionary(HeadersDictionary);
+        RequestObject.SetHeaderValues(HeadersDictionary);
+        foreach HeaderKey in HeadersDictionary.Keys do
+            if not IsContentHeader(HeaderKey) then
+                RequestObject.AddHeader(Headers, HeaderKey, HeadersDictionary.Get(HeaderKey));
     end;
 
     // #endregion

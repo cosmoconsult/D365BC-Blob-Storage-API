@@ -296,6 +296,16 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader('Origin', "Value");
     end;
 
+    procedure SetAccessControlRequestMethodHeader("Value": Enum "Http Request Type")
+    begin
+        AddOptionalHeader('Access-Control-Request-Method', Format("Value"));
+    end;
+
+    procedure SetAccessControlRequestHeadersHeader("Value": Text)
+    begin
+        AddOptionalHeader('Access-Control-Request-Headers', "Value");
+    end;
+
     procedure SetClientRequestIdHeader("Value": Text)
     begin
         AddOptionalHeader('x-ms-client-request-id', "Value");
