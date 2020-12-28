@@ -35,6 +35,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         PutBlockListOperationNotSuccessfulErr: Label 'Could not put block list on %1.', Comment = '%1 = Blob';
         PutBlockFromUrlOperationNotSuccessfulErr: Label 'Could not put block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
         GetUserDelegationKeyOperationNotSuccessfulErr: Label 'Could not get user delegation key.';
+        PreflightBlobRequestOperationNotSuccessfulErr: Label 'CORS request failed.';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1602,4 +1603,39 @@ codeunit 89000 "AZBSA Blob Storage API"
         exit(FormatHelper.GetUserDelegationKeyFromResponse(RequestObject.GetHttpResponseAsText()));
     end;
     // #endregion (POST) Get User Delegation Key
+
+    // #region (OPTIONS) Preflight Blob Request
+    /// <summary>
+    /// The Preflight Blob Request operation queries the Cross-Origin Resource Sharing (CORS) rules for the Blob service prior to sending the actual request.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/preflight-blob-request
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="Origin">Specifies the origin from which the actual request will be issued.</param>
+    /// <param name="AccessControlRequestMethod">Specifies the method (or HTTP verb) for the actual request.</param>
+    procedure PreflightBlobRequest(var RequestObject: Codeunit "AZBSA Request Object"; Origin: Text; AccessControlRequestMethod: Enum "Http Request Type")
+    begin
+        PreflightBlobRequest(RequestObject, Origin, AccessControlRequestMethod, '');
+    end;
+
+    /// <summary>
+    /// The Preflight Blob Request operation queries the Cross-Origin Resource Sharing (CORS) rules for the Blob service prior to sending the actual request.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/preflight-blob-request
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="Origin">Specifies the origin from which the actual request will be issued.</param>
+    /// <param name="AccessControlRequestMethod">Specifies the method (or HTTP verb) for the actual request.</param>
+    /// <param name="AccessControlRequestHeaders">Optional. Specifies the headers for the actual request headers that will be sent</param>
+    procedure PreflightBlobRequest(var RequestObject: Codeunit "AZBSA Request Object"; Origin: Text; AccessControlRequestMethod: Enum "Http Request Type"; AccessControlRequestHeaders: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::PreflightBlobRequest);
+        RequestObject.SetOriginHeader(Origin);
+        RequestObject.SetAccessControlRequestMethodHeader(AccessControlRequestMethod);
+        if AccessControlRequestHeaders <> '' then
+            RequestObject.SetAccessControlRequestHeadersHeader(AccessControlRequestHeaders);
+        WebRequestHelper.OptionsOperation(RequestObject, PreflightBlobRequestOperationNotSuccessfulErr);
+    end;
+    // #endregion (OPTIONS) Preflight Blob Request
 }
