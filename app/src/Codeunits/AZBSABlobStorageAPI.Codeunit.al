@@ -1373,6 +1373,51 @@ codeunit 89000 "AZBSA Blob Storage API"
     end;
     // #endregion (PUT) Put Page
 
+    // #region (PUT) Put Page from URL
+    /// <summary>
+    /// The Put Page From URL operation writes a range of pages to a page blob where the contents are read from a URL.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page-from-url
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes of the source page blob to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes of the source page blob to be written as a page</param>        
+    /// <param name="SourceUri">Specifies the URL of the source blob.</param>
+    procedure PutPageFromURL(var RequestObject: Codeunit "AZBSA Request Object"; StartRangeSource: Integer; EndRangeSource: Integer; SourceUri: Text)
+    begin
+        PutPageFromURL(RequestObject, StartRangeSource, EndRangeSource, StartRangeSource, EndRangeSource, SourceUri); // uses the same ranges for source and destination
+    end;
+
+    /// <summary>
+    /// The Put Page From URL operation writes a range of pages to a page blob where the contents are read from a URL.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/put-page-from-url
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="StartRange">Specifies the start of the range of bytes of the source page blob to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes of the source page blob to be written as a page</param>    
+    /// <param name="StartRange">Specifies the start of the range of bytes to be written as a page</param>
+    /// <param name="EndRange">Specifies the end of the range of bytes to be written as a page</param>    
+    /// <param name="SourceUri">Specifies the URL of the source blob.</param>
+    procedure PutPageFromURL(var RequestObject: Codeunit "AZBSA Request Object"; StartRangeSource: Integer; EndRangeSource: Integer; StartRange: Integer; EndRange: Integer; SourceUri: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        PageWriteOption: Enum "AZBSA Page Write Option";
+        Content: HttpContent;
+        Headers: HttpHeaders;
+    begin
+        RequestObject.SetOperation(Operation::PutPageFromURL);
+        RequestObject.SetSourceRangeHeader(StartRangeSource, EndRangeSource);
+        RequestObject.SetRangeHeader(StartRange, EndRange);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        RequestObject.SetPageWriteOptionHeader(PageWriteOption::Update); // TODO: According to documentation, this header shouldn't be needed
+                                                                         // but it doesn't work without it. Support is informed about it and will either update docs or API
+        Content.GetHeaders(Headers);
+        RequestObject.AddHeader(Headers, 'Content-Length', '0');
+        RequestObject.RemoveHeader(Headers, 'Content-Type'); // was automatically added
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(PutPageOperationNotSuccessfulErr, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Put Page from URL
+
     // #region (GET) Get Page Ranges
     /// <summary>
     /// The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
