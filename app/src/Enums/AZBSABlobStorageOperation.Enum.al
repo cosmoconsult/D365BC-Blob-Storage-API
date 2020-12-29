@@ -175,4 +175,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Put Block from URL';
     }
+    value(64; CopyBlobFromUrl)
+    {
+        Caption = 'Copy Blob from URL';
+    }
 }

@@ -795,13 +795,32 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper: Codeunit "AZBSA Web Request Helper";
         Operation: Enum "AZBSA Blob Storage Operation";
     begin
-        RequestObject.SetOperation(Operation::DeleteBlob);
+        RequestObject.SetOperation(Operation::CopyBlob);
         RequestObject.SetCopySourceNameHeader(SourceName);
         if not IsNullGuid(LeaseId) then
             RequestObject.SetLeaseIdHeader(LeaseId);
         WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
     end;
     // #endregion (PUT) Copy Blob
+
+    // #region (PUT) Copy Blob from URL
+    /// <summary>
+    /// The Copy Blob From URL operation copies a blob to a destination within the storage account synchronously for source blob sizes up to 256 MiB
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceUri">Specifies the URL of the source blob.</param>
+    procedure CopyBlobFromURL(var RequestObject: Codeunit "AZBSA Request Object"; SourceUri: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+    begin
+        RequestObject.SetOperation(Operation::CopyBlobFromUrl);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        RequestObject.SetRequiresSyncHeader(true);
+        WebRequestHelper.PutOperation(RequestObject, CopyOperationNotSuccessfulErr);
+    end;
+    // #endregion (PUT) Copy Blob from URL
 
     // #region (PUT) Abort Copy Blob
     /// <summary>
