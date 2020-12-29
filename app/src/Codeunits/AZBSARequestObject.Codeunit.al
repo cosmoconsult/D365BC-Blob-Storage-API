@@ -405,6 +405,13 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader('x-ms-range', StrSubstNo(RangeBytesLbl, BytesStartValue, BytesEndValue));
     end;
 
+    procedure SetSourceRangeHeader(BytesStartValue: Integer; BytesEndValue: Integer)
+    var
+        RangeBytesLbl: Label 'bytes=%1-%2', Comment = '%1 = Start Range; %2 = End Range';
+    begin
+        AddOptionalHeader('x-ms-source-range', StrSubstNo(RangeBytesLbl, BytesStartValue, BytesEndValue));
+    end;
+
     procedure SetRequiresSyncHeader("Value": Boolean)
     var
         ValueText: Text;
