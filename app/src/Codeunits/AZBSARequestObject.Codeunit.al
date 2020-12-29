@@ -405,6 +405,17 @@ codeunit 89001 "AZBSA Request Object"
         AddOptionalHeader('x-ms-range', StrSubstNo(RangeBytesLbl, BytesStartValue, BytesEndValue));
     end;
 
+    procedure SetRequiresSyncHeader("Value": Boolean)
+    var
+        ValueText: Text;
+    begin
+        if "Value" = true then
+            ValueText := 'true'
+        else
+            ValueText := 'false';
+        AddOptionalHeader('x-ms-requires-sync', ValueText);
+    end;
+
     procedure SetHeaderValues(NewHeaderValues: Dictionary of [Text, Text])
     begin
         HeaderValues := NewHeaderValues;

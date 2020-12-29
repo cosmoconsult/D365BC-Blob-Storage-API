@@ -66,7 +66,7 @@ codeunit 89006 "AZBSA URI Helper"
         // e.g. https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
         if not (Operation in [Operation::DeleteContainer, Operation::ListContainerContents, Operation::PutContainer,
                               Operation::GetContainerProperties, Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob,
-                              Operation::CopyBlob, Operation::LeaseContainer, Operation::LeaseBlob, Operation::AbortCopyBlob,
+                              Operation::CopyBlob, Operation::CopyBlobFromUrl, Operation::LeaseContainer, Operation::LeaseBlob, Operation::AbortCopyBlob,
                               Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
                               Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
                               Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
@@ -81,7 +81,7 @@ codeunit 89006 "AZBSA URI Helper"
     local procedure AppendBlobIfNecessary(var ConstructedUrl: Text; BlobName: Text; Operation: Enum "AZBSA Blob Storage Operation")
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
-        if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::LeaseBlob,
+        if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::CopyBlobFromUrl, Operation::LeaseBlob,
                               Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
                               Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
                               Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
