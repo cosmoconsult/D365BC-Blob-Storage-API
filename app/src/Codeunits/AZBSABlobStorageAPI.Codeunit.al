@@ -34,6 +34,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
         PutBlockListOperationNotSuccessfulErr: Label 'Could not put block list on %1.', Comment = '%1 = Blob';
         PutBlockFromUrlOperationNotSuccessfulErr: Label 'Could not put block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
+        AppendBlockFromUrlOperationNotSuccessfulErr: Label 'Could not append block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
         GetUserDelegationKeyOperationNotSuccessfulErr: Label 'Could not get user delegation key.';
         PreflightBlobRequestOperationNotSuccessfulErr: Label 'CORS request failed.';
 
@@ -363,6 +364,26 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(UploadBlobOperationNotSuccessfulErr, RequestObject.GetBlobName(), RequestObject.GetContainerName()));
     end;
     // #endregion (PUT) Append Block
+
+    // #region (PUT) Append Block From URL
+    /// <summary>
+    /// The Append Block From URL operation commits a new block of data to the end of an existing append blob.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/append-block-from-url
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="SourceUri">Specifies the name of the source blob.</param>
+    procedure AppendBlockFromURL(var RequestObject: Codeunit "AZBSA Request Object"; SourceUri: Text)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::AppendBlockFromURL);
+        RequestObject.SetCopySourceNameHeader(SourceUri);
+        RequestObject.AddHeader('Content-Length', '0');
+        WebRequestHelper.PutOperation(RequestObject, Content, StrSubstNo(AppendBlockFromUrlOperationNotSuccessfulErr, SourceUri, RequestObject.GetBlobName()));
+    end;
+    // #endregion (PUT) Append Block From URL
 
     // #region (GET) Get Blob from Container
     /// <summary>

@@ -77,6 +77,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         Client: HttpClient;
         HttpRequestType: Enum "Http Request Type";
         RequestMsg: HttpRequestMessage;
+        DebugText: Text;
     begin
         HandleHeaders(HttpRequestType::PUT, Client, RequestObject);
         // Prepare HttpRequestMessage
@@ -88,6 +89,7 @@ codeunit 89004 "AZBSA Web Request Helper"
         // Send Request    
         Client.Send(RequestMsg, Response);
         RequestObject.SetHttpResponse(Response);
+        Response.Content.ReadAs(DebugText);
         if not Response.IsSuccessStatusCode then
             Error(HttpResponseInfoErr, OperationNotSuccessfulErr, Response.HttpStatusCode, Response.ReasonPhrase);
     end;
