@@ -70,7 +70,7 @@ codeunit 89006 "AZBSA URI Helper"
                               Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetContainerMetadata, Operation::SetContainerMetadata,
                               Operation::GetBlobMetadata, Operation::SetBlobMetadata, Operation::GetContainerAcl, Operation::SetContainerAcl,
                               Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
-                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::PutPageFromURL, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
+                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::AppendBlockFromURL, Operation::SetBlobTier, Operation::PutPage, Operation::PutPageFromURL, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
                               Operation::PutBlock, Operation::PutBlockFromURL, Operation::PutBlockList, Operation::GetBlockList, Operation::PreflightBlobRequest]) then
             exit;
         if not ConstructedUrl.EndsWith('/') then
@@ -84,7 +84,7 @@ codeunit 89006 "AZBSA URI Helper"
         if not (Operation in [Operation::GetBlob, Operation::PutBlob, Operation::DeleteBlob, Operation::CopyBlob, Operation::CopyBlobFromUrl, Operation::LeaseBlob,
                               Operation::AbortCopyBlob, Operation::GetBlobProperties, Operation::SetBlobProperties, Operation::GetBlobMetadata,
                               Operation::SetBlobMetadata, Operation::GetBlobTags, Operation::SetBlobTags, Operation::SetBlobExpiry, Operation::SnapshotBlob,
-                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::SetBlobTier, Operation::PutPage, Operation::PutPageFromURL, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
+                              Operation::UndeleteBlob, Operation::AppendBlock, Operation::AppendBlockFromURL, Operation::SetBlobTier, Operation::PutPage, Operation::PutPageFromURL, Operation::GetPageRanges, Operation::IncrementalCopyBlob,
                               Operation::PutBlock, Operation::PutBlockFromURL, Operation::PutBlockList, Operation::GetBlockList, Operation::PreflightBlobRequest]) then
             exit;
         if (Operation = Operation::PreflightBlobRequest) and (BlobName = '') then // Blob is not mandatory for Operation::PreflightBlobRequest, so only proceed if given
@@ -189,6 +189,8 @@ codeunit 89006 "AZBSA URI Helper"
                 CompValue := BlockListExtensionLbl;
             Operation::GetUserDelegationKey:
                 CompValue := UserDelegationKeyExtensionLbl;
+            Operation::AppendBlockFromURL:
+                CompValue := AppendBlockExtensionLbl;
         end;
         if CompValue = '' then
             exit;
