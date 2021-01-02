@@ -182,6 +182,11 @@ codeunit 89001 "AZBSA Request Object"
         exit(ResponseText)
     end;
 
+    procedure GetHttpResponseAsStream(var Result: InStream);
+    begin
+        Response.Content.ReadAs(Result);
+    end;
+
     procedure GetHttpResponseHeaders(var NewResponseHeaders: HttpHeaders)
     begin
         NewResponseHeaders := Response.Headers;
