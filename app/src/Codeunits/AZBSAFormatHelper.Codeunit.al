@@ -165,6 +165,22 @@ codeunit 89003 "AZBSA Format Helper"
         exit(Expression);
     end;
 
+    procedure QueryExpressionToQueryBlobContent(QueryExpression: Text): XmlDocument
+    var
+        Document: XmlDocument;
+        QueryRequestNode: XmlNode;
+        QueryTypeNode: XmlNode;
+        ExpressionNode: XmlNode;
+    begin
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="utf-8"?><QueryRequest></QueryRequest>', Document);
+        Document.SelectSingleNode('/QueryRequest', QueryRequestNode);
+        QueryTypeNode := XmlElement.Create('QueryType', '', 'SQL').AsXmlNode();
+        QueryRequestNode.AsXmlElement().Add(QueryTypeNode);
+        ExpressionNode := XmlElement.Create('Expression', '', QueryExpression).AsXmlNode();
+        QueryRequestNode.AsXmlElement().Add(ExpressionNode);
+        exit(Document);
+    end;
+
     local procedure GetOperatorFromValue("Value": Text): Text
     var
         NewValue: Text;

@@ -187,4 +187,8 @@ enum 89000 "AZBSA Blob Storage Operation"
     {
         Caption = 'Copy Blob from URL';
     }
+    value(65; QueryBlobContents)
+    {
+        Caption = 'Query Blob Contents';
+    }
 }

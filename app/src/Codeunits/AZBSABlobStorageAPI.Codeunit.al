@@ -37,6 +37,7 @@ codeunit 89000 "AZBSA Blob Storage API"
         AppendBlockFromUrlOperationNotSuccessfulErr: Label 'Could not append block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
         GetUserDelegationKeyOperationNotSuccessfulErr: Label 'Could not get user delegation key.';
         PreflightBlobRequestOperationNotSuccessfulErr: Label 'CORS request failed.';
+        QueryBlobContentOperationNotSuccessfulErr: Label 'Blob Content Query request failed.';
 
     // #region (PUT) Create Containers
     /// <summary>
@@ -1723,4 +1724,39 @@ codeunit 89000 "AZBSA Blob Storage API"
         WebRequestHelper.OptionsOperation(RequestObject, PreflightBlobRequestOperationNotSuccessfulErr);
     end;
     // #endregion (OPTIONS) Preflight Blob Request
+
+    // #region (POST) Query Blob Contents
+    /// <summary>
+    /// The Query Blob Contents API applies a simple Structured Query Language (SQL) statement on a blob's contents and returns only the queried subset of the data.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/query-blob-contents
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="QueryExpression">A SQL-like expression to query content (see: https://docs.microsoft.com/en-us/azure/storage/blobs/query-acceleration-sql-reference)</param>
+    procedure QueryBlobContents(var RequestObject: Codeunit "AZBSA Request Object"; QueryExpression: Text; var Result: InStream)
+    var
+        FormatHelper: Codeunit "AZBSA Format Helper";
+        QueryDocument: XmlDocument;
+    begin
+        QueryDocument := FormatHelper.QueryExpressionToQueryBlobContent(QueryExpression);
+        QueryBlobContents(RequestObject, QueryDocument, Result);
+    end;
+    /// <summary>
+    /// The Query Blob Contents API applies a simple Structured Query Language (SQL) statement on a blob's contents and returns only the queried subset of the data.
+    /// see: https://docs.microsoft.com/en-us/rest/api/storageservices/query-blob-contents
+    /// </summary>
+    /// <param name="RequestObject">A Request Object containing the necessary parameters for the request.</param>
+    /// <param name="QueryDocument">The XML containing the QueryRequest</param>
+    procedure QueryBlobContents(var RequestObject: Codeunit "AZBSA Request Object"; QueryDocument: XmlDocument; var Result: InStream)
+    var
+        WebRequestHelper: Codeunit "AZBSA Web Request Helper";
+        Operation: Enum "AZBSA Blob Storage Operation";
+        Content: HttpContent;
+    begin
+        RequestObject.SetOperation(Operation::QueryBlobContents);
+        WebRequestHelper.AddQueryBlobContentRequestContent(Content, RequestObject, QueryDocument);
+        WebRequestHelper.PostOperation(RequestObject, Content, QueryBlobContentOperationNotSuccessfulErr);
+        RequestObject.GetHttpResponseAsStream(Result);
+        // TODO: I don't know yet what to do with the "Avro\Binary"-result. It contains the result, but I still need to figure out how to read the format....
+    end;
+    // #endregion (POST) Query Blob Contents
 }
